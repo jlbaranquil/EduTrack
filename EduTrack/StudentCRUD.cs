@@ -152,7 +152,43 @@ namespace EduTrack
 		
 		
 		
-		
+        public bool UpdateStudent(Student student)
+        {
+            try
+            {
+                using (MySqlConnection conn = StudentDatabase.GetConnection())
+                {
+                    conn.Open();
+                    string query = @"UPDATE students 
+                                     SET name = @name, 
+                                         gender = @gender, 
+                                         year_level = @year, 
+                                         program = @program, 
+                                         contact_number = @contact, 
+                                         photo_path = @photo 
+                                     WHERE student_id = @id";
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", student.StudentID);
+                        cmd.Parameters.AddWithValue("@name", student.Name);
+                        cmd.Parameters.AddWithValue("@gender", student.Gender);
+                        cmd.Parameters.AddWithValue("@year", student.YearLevel);
+                        cmd.Parameters.AddWithValue("@program", student.Program);
+                        cmd.Parameters.AddWithValue("@contact", student.ContactNumber);
+                        cmd.Parameters.AddWithValue("@photo", string.IsNullOrEmpty(student.PhotoPath) ? (object)DBNull.Value : student.PhotoPath);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowDatabaseError(ex, "updating student");
+                return false;
+            }
+        }
 		
 		
 		
