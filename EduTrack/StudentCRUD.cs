@@ -68,6 +68,89 @@ namespace EduTrack
         }
 		
 		
+        public DataTable GetAllStudents()
+        {
+            DataTable dt = new DataTable();
+
+            try
+            {
+                using (MySqlConnection conn = StudentDatabase.GetConnection())
+                {
+                    conn.Open();
+                    string query = "SELECT student_id, name, gender, year_level, program, contact_number, photo_path FROM students ORDER BY student_id ASC";
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    using (MySqlDataAdapter adapter = new MySqlDataAdapter(cmd))
+                    {
+                        adapter.Fill(dt);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowDatabaseError(ex, "loading students");
+            }
+
+            return dt;
+        }
+
+
+
+        public DataTable FilterStudents(string keyword, string yearLevel, string program)
+        {
+            DataTable dt = new DataTable();
+
+            try
+            {
+                using (MySqlConnection conn = StudentDatabase.GetConnection())
+                {
+                    conn.Open();
+                    string query = @"SELECT student_id, name, gender, year_level, program, contact_number, photo_path 
+                                     FROM students 
+                                     WHERE (student_id LIKE @keyword OR name LIKE @keyword)";
+
+                    if (!string.IsNullOrEmpty(yearLevel) && yearLevel != "All Years")
+                    {
+                        query += " AND year_level = @yearLevel";
+                    }
+
+                    if (!string.IsNullOrEmpty(program) && program != "All Programs")
+                    {
+                        query += " AND program = @program";
+                    }
+
+                    query += " ORDER BY student_id ASC";
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@keyword", "%" + keyword + "%");
+
+                        if (!string.IsNullOrEmpty(yearLevel) && yearLevel != "All Years")
+                        {
+                            cmd.Parameters.AddWithValue("@yearLevel", yearLevel);
+                        }
+
+                        if (!string.IsNullOrEmpty(program) && program != "All Programs")
+                        {
+                            cmd.Parameters.AddWithValue("@program", program);
+                        }
+
+                        using (MySqlDataAdapter adapter = new MySqlDataAdapter(cmd))
+                        {
+                            adapter.Fill(dt);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowDatabaseError(ex, "filtering students");
+            }
+
+            return dt;
+        }
+		
+		
 		
 		
 		
