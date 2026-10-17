@@ -1,6 +1,6 @@
 ﻿namespace EduTrack
 {
-    partial class MainForm
+    partial class LoginForm
     {
         /// <summary>
         ///  Required designer variable.
