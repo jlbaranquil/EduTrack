@@ -190,18 +190,80 @@ namespace EduTrack
             }
         }
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+	
+	
+        public bool DeleteStudent(string studentID)
+        {
+            try
+            {
+                using (MySqlConnection conn = StudentDatabase.GetConnection())
+                {
+                    conn.Open();
+                    string query = "DELETE FROM students WHERE student_id = @id";
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", studentID);
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowDatabaseError(ex, "deleting student");
+                return false;
+            }
+        }
+
+
+
+        public int GetTotalStudentCount()
+        {
+            try
+            {
+                using (MySqlConnection conn = StudentDatabase.GetConnection())
+                {
+                    conn.Open();
+                    string query = "SELECT COUNT(*) FROM students";
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        return Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowDatabaseError(ex, "counting total students");
+                return 0;
+            }
+        }
+
+
+
+        public int GetStudentCountByProgram(string program)
+        {
+            try
+            {
+                using (MySqlConnection conn = StudentDatabase.GetConnection())
+                {
+                    conn.Open();
+                    string query = "SELECT COUNT(*) FROM students WHERE program = @program";
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@program", program);
+                        return Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.ShowDatabaseError(ex, "counting students by program");
+                return 0;
+            }
+        }
 		
 		
 		
