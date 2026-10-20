@@ -1,149 +1,96 @@
 using System;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 using MySql.Data.MySqlClient;
 
 namespace EduTrack
 {
     public static class ErrorHandler
     {
-        /// Handles all database exceptions caught in StudentCRUD.cs.
-        /// Matches the exact signature: ErrorHandler.ShowDatabaseError(e.g., "action")
-        public static void ShowDatabaseError(Exception ex, string action = "performing a database operation")
+        // 1. Validates login inputs
+        public static bool ValidateLogin(string username, string password)
+        {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                MessageBox.Show("Username and password cannot be empty.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            return true;
+        }
+
+        // 2. Validates student fields and enforces the 0900-000-0000 contact mask
+        public static bool ValidateStudent(Student student)
+        {
+            if (student == null || 
+                string.IsNullOrWhiteSpace(student.StudentID) || 
+                string.IsNullOrWhiteSpace(student.Name) || 
+                string.IsNullOrWhiteSpace(student.Gender) || 
+                string.IsNullOrWhiteSpace(student.YearLevel) || 
+                string.IsNullOrWhiteSpace(student.Program))
+            {
+                MessageBox.Show("Please fill in all required student fields.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            // Checks if the contact number matches the exact mask required by the UI
+            if (string.IsNullOrWhiteSpace(student.ContactNumber) || !Regex.IsMatch(student.ContactNumber, @"^09\d{2}-\d{3}-\d{4}$"))
+            {
+                MessageBox.Show("Please enter a valid contact number in the format: 0900-000-0000.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
+        }
+
+        // 3. Ensures a row is selected before Edit/Delete
+        public static bool ValidateSelection(string studentId)
+        {
+            if (string.IsNullOrWhiteSpace(studentId))
+            {
+                MessageBox.Show("Please select a student record from the table first.", "Selection Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            return true;
+        }
+
+        // 4. Deletion confirmation using the student's name
+        public static bool ConfirmDelete(string studentName)
+        {
+            DialogResult result = MessageBox.Show($"Are you sure you want to delete {studentName}?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            return result == DialogResult.Yes;
+        }
+
+        // 5. Sign Out confirmation
+        public static bool ConfirmSignOut()
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want to sign out?", "Confirm Sign Out", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            return result == DialogResult.Yes;
+        }
+
+        // 6. Database & runtime error handling
+        public static void ShowDatabaseError(Exception ex, string action)
         {
             if (ex is MySqlException mysqlEx)
             {
                 string userMessage = mysqlEx.Number switch
                 {
-                    1062 => $"Duplicate Entry: A record with that ID already exists while {action}.",
-                    0 or 1042 => $"Connection Failed: Unable to reach the MySQL server while {action}. Please ensure MySQL is running.",
-                    1045 => $"Access Denied: Invalid MySQL username or password while {action}.",
+                    1062 => $"A record with that ID already exists while {action}.",
+                    0 or 1042 => $"Unable to reach the database while {action}. Please ensure MySQL is running.",
                     _ => $"A database error occurred while {action}.\n\nMySQL Error ({mysqlEx.Number}): {mysqlEx.Message}"
                 };
 
-                MessageBox.Show(
-                    userMessage,
-                    "EduTrack - Database Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                MessageBox.Show(userMessage, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                MessageBox.Show(
-                    $"An unexpected error occurred while {action}.\n\nDetails: {ex.Message}",
-                    "EduTrack - System Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                MessageBox.Show($"An unexpected error occurred while {action}.\n\nDetails: {ex.Message}", "System Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        /// Displays a warning popup for blank or invalid form inputs.
-        public static void ShowValidationError(string message)
+        // 7. Post-action success popup
+        public static void ShowSuccess(string action)
         {
-            MessageBox.Show(
-                message,
-                "EduTrack - Invalid Input",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
-            );
-        }
-
-        /// Validates the LoginForm text boxes before authenticating.
-        public static bool ValidateLoginInput(string? username, string? password)
-        {
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                ShowValidationError("Please enter your username.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                ShowValidationError("Please enter your password.");
-                return false;
-            }
-
-            return true;
-        }
-
-        /// Validates a Student object in MainForm before adding or updating a record.
-        /// PhotoPath is intentionally optional based on StudentCRUD.cs logic.
-        public static bool ValidateStudentInput(Student? student)
-        {
-            if (student == null)
-            {
-                ShowValidationError("Student data is missing.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(student.StudentID))
-            {
-                ShowValidationError("Student ID cannot be empty.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(student.Name))
-            {
-                ShowValidationError("Student Name cannot be empty.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(student.Gender))
-            {
-                ShowValidationError("Please select a Gender.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(student.YearLevel))
-            {
-                ShowValidationError("Please select a Year Level.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(student.Program))
-            {
-                ShowValidationError("Please select or enter a Program.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(student.ContactNumber))
-            {
-                ShowValidationError("Contact Number cannot be empty.");
-                return false;
-            }
-
-            return true;
-        }
-
-        /// Displays the mandatory "Are you sure?" confirmation prompt before deleting a student.
-        public static bool ConfirmDelete(string? studentID = null, string? studentName = null)
-        {
-            string target = !string.IsNullOrWhiteSpace(studentName)
-                ? $"{studentName} ({studentID})"
-                : !string.IsNullOrWhiteSpace(studentID)
-                    ? $"student ID {studentID}"
-                    : "this student record";
-
-            DialogResult result = MessageBox.Show(
-                $"Are you sure you want to delete {target}? This action cannot be undone.",
-                "EduTrack - Confirm Delete",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
-
-            return result == DialogResult.Yes;
-        }
-
-        /// Handles general UI/file errors (e.g., loading a profile photo in MainForm).
-        public static void ShowUIError(Exception ex, string action = "processing your request")
-        {
-            MessageBox.Show(
-                $"Something went wrong while {action}.\n\nDetails: {ex.Message}",
-                "EduTrack - Application Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            );
+            MessageBox.Show($"Successfully completed: {action}!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }
