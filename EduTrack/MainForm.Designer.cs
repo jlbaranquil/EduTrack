@@ -1,16 +1,80 @@
-﻿namespace EduTrack
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace EduTrack
 {
     partial class MainForm
     {
-        /// <summary>
-        ///  Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        ///  Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        // Control declarations required by MainForm.cs
+        private Panel pnlHeader;
+        private Panel pnlHeaderLogo;
+        private Label lblHeaderIcon;
+        private Label lblAppTitle;
+        private Label lblAppSubtitle;
+        private Label lblAdminBadge;
+        private Panel pnlDbStatusBadge;
+        private Label lblDbStatus;
+        private Button btnSignOut;
+
+        private FlowLayoutPanel flpStats;
+        private Panel pnlCardTotal;
+        private Panel pnlAccentTotal;
+        private Label lblTitleTotal;
+        private Label lblTotalCount;
+
+        private Panel pnlCardBsit;
+        private Panel pnlAccentBsit;
+        private Label lblTitleBsit;
+        private Label lblBsitCount;
+
+        private Panel pnlCardBscs;
+        private Panel pnlAccentBscs;
+        private Label lblTitleBscs;
+        private Label lblBscsCount;
+
+        private Panel pnlCardOther;
+        private Panel pnlAccentOther;
+        private Label lblTitleOther;
+        private Label lblOtherCount;
+
+        private Panel pnlStudentDetails;
+        private Panel pnlDetailsHeader;
+        private Label lblDetailsHeaderTitle;
+        private PictureBox picStudent;
+        private Button btnBrowsePhoto;
+        private Label lblPhotoHint;
+        private Label lblStudentID;
+        private TextBox txtStudentID;
+        private Label lblFullName;
+        private TextBox txtFullName;
+        private Label lblGender;
+        private RadioButton rbMale;
+        private RadioButton rbFemale;
+        private RadioButton rbOther;
+        private Label lblYearLevel;
+        private ComboBox cmbYearLevel;
+        private Label lblProgram;
+        private ComboBox cmbProgram;
+        private Label lblContact;
+        private TextBox txtContact;
+        private Button btnAdd;
+        private Button btnUpdate;
+        private Button btnDelete;
+        private Button btnClear;
+
+        private Panel pnlFilterBar;
+        private Label lblFilterLabel;
+        private TextBox txtSearch;
+        private ComboBox cmbFilterYear;
+        private ComboBox cmbFilterProgram;
+
+        private Panel pnlGridContainer;
+        private DataGridView dgvStudents;
+        private Label lblRecordCount;
+        private Button btnExportCsv;
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -20,20 +84,10 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
-        /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
-            Text = "Form1";
-        }
 
-        #endregion
+
+        }
     }
 }

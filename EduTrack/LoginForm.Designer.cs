@@ -1,16 +1,38 @@
-﻿namespace EduTrack
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace EduTrack
 {
     partial class LoginForm
     {
-        /// <summary>
-        ///  Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        ///  Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        // Control declarations required by LoginForm.cs
+        private Panel pnlLeft;
+        private Panel pnlLogoBox;
+        private Label lblLogoIcon;
+        private Label lblBrandTitle;
+        private Label lblBrandSubtitle;
+        private Panel pnlDivider;
+        private Label lblFeature1;
+        private Label lblFeature2;
+        private Label lblFeature3;
+        private Panel pnlStatusBox;
+        private Label lblStatus;
+
+        private Panel pnlRight;
+        private Label lblAuthHeader;
+        private Label lblWelcomeTitle;
+        private Label lblWelcomeSubtitle;
+        private Label lblError;
+        private Label lblUsernameTitle;
+        private TextBox txtUsername;
+        private Label lblPasswordTitle;
+        private TextBox txtPassword;
+        private CheckBox chkShowPassword;
+        private Button btnLogin;
+        private Button btnClose;
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -20,20 +42,10 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
-        /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
-            Text = "Form1";
-        }
 
-        #endregion
+
+        }
     }
 }
