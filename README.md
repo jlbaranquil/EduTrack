@@ -7,6 +7,7 @@
 
 
 **Group Name:** JARVIS
+**GitHub repository link:** https://github.com/jlbaranquil/EduTrack
 
 ## Team Members & Roles
 | Member Name | Assigned Role |
