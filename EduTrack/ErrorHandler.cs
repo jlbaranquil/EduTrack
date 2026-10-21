@@ -1,96 +1,107 @@
 using System;
 using System.Windows.Forms;
-using System.Text.RegularExpressions;
-using MySql.Data.MySqlClient;
 
 namespace EduTrack
 {
-    public static class ErrorHandler
+    public class ErrorHandler
     {
-        // 1. Validates login inputs
-        public static bool ValidateLogin(string username, string password)
+        public static bool ValidateLoginInputs(string username, string password)
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Username and password cannot be empty.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             return true;
         }
 
-        // 2. Validates student fields and enforces the 0900-000-0000 contact mask
-        public static bool ValidateStudent(Student student)
+        public static bool ValidateStudentInputs(Student s)
         {
-            if (student == null || 
-                string.IsNullOrWhiteSpace(student.StudentID) || 
-                string.IsNullOrWhiteSpace(student.Name) || 
-                string.IsNullOrWhiteSpace(student.Gender) || 
-                string.IsNullOrWhiteSpace(student.YearLevel) || 
-                string.IsNullOrWhiteSpace(student.Program))
+            if (s == null ||
+                string.IsNullOrWhiteSpace(s.StudentID) ||
+                string.IsNullOrWhiteSpace(s.Name) ||
+                string.IsNullOrWhiteSpace(s.Gender) ||
+                string.IsNullOrWhiteSpace(s.YearLevel) || s.YearLevel == "-- Select Year --" ||
+                string.IsNullOrWhiteSpace(s.Program) || s.Program == "-- Select Program --" ||
+                string.IsNullOrWhiteSpace(s.ContactNumber))
             {
-                MessageBox.Show("Please fill in all required student fields.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Please fill in all required student fields before saving.",
+                    "Validation Warning",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
                 return false;
             }
 
-            // Checks if the contact number matches the exact mask required by the UI
-            if (string.IsNullOrWhiteSpace(student.ContactNumber) || !Regex.IsMatch(student.ContactNumber, @"^09\d{2}-\d{3}-\d{4}$"))
+            if (s.ContactNumber.Length != 11 || !long.TryParse(s.ContactNumber, out _))
             {
-                MessageBox.Show("Please enter a valid contact number in the format: 0900-000-0000.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Please enter a valid 11-digit contact number (e.g., 09171234567).",
+                    "Invalid Contact Number",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
                 return false;
             }
 
             return true;
         }
 
-        // 3. Ensures a row is selected before Edit/Delete
-        public static bool ValidateSelection(string studentId)
+        public static bool ValidateStudentID(string studentID)
         {
-            if (string.IsNullOrWhiteSpace(studentId))
+            if (string.IsNullOrWhiteSpace(studentID))
             {
-                MessageBox.Show("Please select a student record from the table first.", "Selection Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Please select a student record from the table first.",
+                    "No Student Selected",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
                 return false;
             }
             return true;
         }
 
-        // 4. Deletion confirmation using the student's name
-        public static bool ConfirmDelete(string studentName)
+        public static bool ConfirmDelete(string studentID)
         {
-            DialogResult result = MessageBox.Show($"Are you sure you want to delete {studentName}?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show(
+                "Are you sure you want to delete student record (" + studentID + ")? This action cannot be undone.",
+                "Confirm Delete",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning
+            );
             return result == DialogResult.Yes;
         }
 
-        // 5. Sign Out confirmation
         public static bool ConfirmSignOut()
         {
-            DialogResult result = MessageBox.Show("Are you sure you want to sign out?", "Confirm Sign Out", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show(
+                "Are you sure you want to sign out of EduTrack?",
+                "Confirm Sign Out",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
             return result == DialogResult.Yes;
         }
 
-        // 6. Database & runtime error handling
         public static void ShowDatabaseError(Exception ex, string action)
         {
-            if (ex is MySqlException mysqlEx)
-            {
-                string userMessage = mysqlEx.Number switch
-                {
-                    1062 => $"A record with that ID already exists while {action}.",
-                    0 or 1042 => $"Unable to reach the database while {action}. Please ensure MySQL is running.",
-                    _ => $"A database error occurred while {action}.\n\nMySQL Error ({mysqlEx.Number}): {mysqlEx.Message}"
-                };
-
-                MessageBox.Show(userMessage, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-                MessageBox.Show($"An unexpected error occurred while {action}.\n\nDetails: {ex.Message}", "System Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            MessageBox.Show(
+                "A database error occurred while " + action + ".\n\nDetails: " + ex.Message,
+                "Database Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
         }
 
-        // 7. Post-action success popup
-        public static void ShowSuccess(string action)
+        public static void ShowSuccess(string message)
         {
-            MessageBox.Show($"Successfully completed: {action}!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(
+                message,
+                "Success",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
         }
     }
 }
