@@ -1,4 +1,10 @@
-# EduTrack - Student Information System
+<div align="center">
+  <img src="EduTrack/Assets/edutrack-logo.svg" alt="EduTrack Logo" width="150"/>
+
+  # EduTrack: Student Information System
+  **CS 106 Midterm Project** • Group 8
+</div>
+
 
 **Group Name:** JARVIS
 
