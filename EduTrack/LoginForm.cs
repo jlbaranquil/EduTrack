@@ -33,31 +33,64 @@ namespace EduTrack
                 pnlRight.Invalidate();
             };
 
-            // TODO: 1. Test the database connection using StudentDatabase.TestConnection().
-            // TODO: 2. If connected, set lblStatus.Text to "🟢  MySQL Status: Connected" and ForeColor to RGB(74, 222, 128).
-            // TODO: 3. If offline, set lblStatus.Text to "🔴  MySQL Status: Offline" and ForeColor to RGB(248, 113, 113).
+            StudentDatabase.TestConnection();
+
+            if (StudentDatabase.TestConnection())
+            {
+                lblStatus.Text = "🟢 MySQL Status: Connected";
+                lblStatus.ForeColor = Color.FromArgb(74, 222, 128);
+            }
+            else
+            {
+                lblStatus.Text = "🔴 MySQL Status: Offline";
+                lblStatus.ForeColor = Color.FromArgb(248, 113, 113);
+            }
         }
 
         private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
         {
-            // TODO: Toggle txtPassword.UseSystemPasswordChar based on chkShowPassword.Checked.
+            if (chkShowPassword.Checked)
+            {
+                txtPassword.UseSystemPasswordChar = true;
+            }
+            else
+            {
+                txtPassword.UseSystemPasswordChar = false;
+            }
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            // TODO: 1. Retrieve and trim the text from txtUsername and txtPassword.
-            
-            // TODO: 2. Validate inputs using ErrorHandler.ValidateLoginInputs(username, password).
-            //          If invalid, display "Please enter both username and password." in lblError and return.
+            string username = txtUsername.Text.Trim();
+            string password = txtPassword.Text.Trim();
 
-            // TODO: 3. Authenticate the user via crud.AuthenticateUser(username, password).
-            //          - If valid: hide lblError, instantiate and show MainForm, and hide this LoginForm.
-            //          - If invalid: display "Invalid username or password." in lblError.
+            if (!ErrorHandler.ValidateLoginInputs(username, password))
+            {
+                lblError.Text = "Please enter both username and password.";
+                lblError.Visible = true;
+                return;
+            }
+
+            if (crud.AuthenticateUser(username, password))
+            {
+                lblError.Visible = false;
+
+                MainForm mainForm = new MainForm();
+                mainForm.Show();
+
+                this.Hide();
+            }
+            else
+            {
+                lblError.Text = "Invalid username or password.";
+                lblError.Visible = true;
+            }
         }
+
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            // TODO: Exit the application.
+            Application.Exit();
         }
 
         #region UI Drawing Helpers (Do Not Modify)
