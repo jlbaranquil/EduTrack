@@ -1,30 +1,29 @@
+using System;
 using MySql.Data.MySqlClient;
 
 namespace EduTrack
 {
-    public static class StudentDatabase
+    public class StudentDatabase
     {
-        private static string connectionString =
-            "Server=localhost;Port=3306;Database=edutrack_db;Uid=root;Pwd=@BicolU130589li~07;";
+        private static string connectionString = "server=localhost;port=3306;database=edutrack_db;uid=username;pwd=password;";
 
-        public static MySqlConnection GetConnection() //Creates and returns a new MySqlConnection object using the connection string.
+        public static MySqlConnection GetConnection()
         {
             return new MySqlConnection(connectionString);
         }
 
-        public static bool TestConnection() //Attempts to open and close a connection in a try-catch block.
+        public static bool TestConnection()
         {
             try
             {
-                using (MySqlConnection connection = GetConnection())
+                using (MySqlConnection conn = GetConnection())
                 {
-                    connection.Open();
-                    connection.Close();
-
+                    conn.Open();
+                    conn.Close();
                     return true;
                 }
             }
-            catch
+            catch (Exception)
             {
                 return false;
             }
