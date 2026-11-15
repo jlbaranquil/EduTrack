@@ -11,32 +11,23 @@ namespace EduTrack
 {
     public partial class MainForm : Form
     {
-        // ==========================================
-        // UI CONFIGURATION & THEMING
-        // ==========================================
         public static string APP_TITLE = "EDUTRACK";
         public static string APP_SUBTITLE = "Student Information & Directory System";
-
-        // If missing, defaults to Emoji.
         public static string LOGO_IMAGE_PATH = @"Assets\edutrack-logo.png";
         public static string LOGO_EMOJI = "🎓";
-
-        // Dashboard Tile Icons
         public static string ICON_TOTAL = "👥";
         public static string ICON_BSIT = "💻";
         public static string ICON_BSCS = "⌨️";
         public static string ICON_OTHER = "📁";
-
-        // Fonts
         public static string FONT_HEADING_PATH = @"Assets\Poppins.ttf";
         public static string FONT_BODY_PATH = @"Assets\Inter.ttf";
-        // ==========================================
 
         private StudentCRUD crud = new StudentCRUD();
+        private StudentAnalytics analytics = new StudentAnalytics();
         private bool isInitializing = false;
+        private bool isAnalyticsView = false;
         private PrivateFontCollection pfc = new PrivateFontCollection();
 
-        // Pre-input placeholder texts
         private const string PH_STUDENT_ID = "e.g. 2026-0001";
         private const string PH_FULL_NAME = "First & Last Name";
         private const string PH_CONTACT = "XXXX-XXX-XXXX";
@@ -58,7 +49,9 @@ namespace EduTrack
                     return pfc.Families[pfc.Families.Length - 1];
                 }
             }
-            catch { }
+            catch
+            {
+            }
             return null;
         }
 
@@ -103,6 +96,11 @@ namespace EduTrack
         {
             isInitializing = true;
 
+            dgvStudents.DataError += (s, errArgs) =>
+            {
+                errArgs.ThrowException = false;
+            };
+
             cmbYearLevel.SelectedIndex = 0;
             cmbProgram.SelectedIndex = 0;
             cmbFilterYear.SelectedIndex = 0;
@@ -119,12 +117,10 @@ namespace EduTrack
             ApplyRoundedCorners(lblAdminBadge, 6, Color.FromArgb(30, 41, 59));
             ApplyRoundedCorners(pnlDbStatusBadge, 6, Color.FromArgb(16, 185, 129));
             ApplyRoundedCorners(btnSignOut, 6, Color.Empty);
-
             ApplyRoundedCorners(pnlCardTotal, 10, thinBorder);
             ApplyRoundedCorners(pnlCardBsit, 10, thinBorder);
             ApplyRoundedCorners(pnlCardBscs, 10, thinBorder);
             ApplyRoundedCorners(pnlCardOther, 10, thinBorder);
-
             ApplyRoundedCorners(pnlStudentDetails, 10, thinBorder);
             ApplyRoundedCorners(picStudent, 10, Color.FromArgb(147, 197, 253));
             ApplyRoundedCorners(btnBrowsePhoto, 6, inputBorder);
@@ -132,9 +128,12 @@ namespace EduTrack
             ApplyRoundedCorners(btnUpdate, 8, Color.Empty);
             ApplyRoundedCorners(btnDelete, 8, Color.Empty);
             ApplyRoundedCorners(btnClear, 8, inputBorder);
-
             ApplyRoundedCorners(pnlFilterBar, 10, thinBorder);
+            ApplyRoundedCorners(btnToggleView, 6, Color.Empty);
+            ApplyRoundedCorners(btnRefreshDashboard, 6, inputBorder);
             ApplyRoundedCorners(pnlGridContainer, 10, thinBorder);
+            ApplyRoundedCorners(btnExportChart, 6, Color.Empty);
+            ApplyRoundedCorners(btnExportSummaryReport, 6, Color.Empty);
             ApplyRoundedCorners(btnExportCsv, 6, Color.Empty);
 
             AddRoundedInputBox(pnlStudentDetails, txtStudentID, 6, inputBorder);
@@ -143,23 +142,9 @@ namespace EduTrack
             AddRoundedInputBox(pnlFilterBar, txtSearch, 6, inputBorder);
 
             picStudent.Paint += picStudent_Paint;
-
             isInitializing = false;
 
-            bool isConnected = StudentDatabase.TestConnection();
-            if (isConnected)
-            {
-                lblDbStatus.Text = "🟢  DB Connected";
-                lblDbStatus.ForeColor = Color.FromArgb(16, 185, 129);
-            }
-            else
-            {
-                lblDbStatus.Text = "🔴  DB Offline";
-                lblDbStatus.ForeColor = Color.FromArgb(244, 63, 94);
-            }
-
-            LoadStudentsToGrid();
-            UpdateSummaryCards();
+            RefreshDashboardAnalytics();
             ClearInputs();
         }
 
@@ -219,7 +204,11 @@ namespace EduTrack
                 using (Font iconFont = new Font("Segoe UI Emoji", 24F, FontStyle.Regular))
                 using (SolidBrush iconBrush = new SolidBrush(Color.FromArgb(59, 130, 246)))
                 {
-                    StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                    StringFormat sf = new StringFormat
+                    {
+                        Alignment = StringAlignment.Center,
+                        LineAlignment = StringAlignment.Center
+                    };
                     e.Graphics.DrawString("👤", iconFont, iconBrush, picStudent.ClientRectangle, sf);
                 }
             }
@@ -249,7 +238,10 @@ namespace EduTrack
                     control.Region = new Region(path);
                     if (borderColor != Color.Empty)
                     {
-                        using (Pen pen = new Pen(borderColor, 1)) e.Graphics.DrawPath(pen, path);
+                        using (Pen pen = new Pen(borderColor, 1))
+                        {
+                            e.Graphics.DrawPath(pen, path);
+                        }
                     }
                 }
             };
@@ -278,7 +270,6 @@ namespace EduTrack
             DataTable dt = crud.GetAllStudents();
             dgvStudents.DataSource = dt;
             FormatStudentGrid();
-
             int totalCount = crud.GetTotalStudentCount();
             lblRecordCount.Text = "Showing " + dt.Rows.Count + " of " + totalCount + " records";
         }
@@ -286,13 +277,21 @@ namespace EduTrack
         private void FormatStudentGrid()
         {
             if (dgvStudents.Columns.Count == 0) return;
-            if (dgvStudents.Columns.Contains("student_id")) dgvStudents.Columns["student_id"].HeaderText = "STUDENT ID";
-            if (dgvStudents.Columns.Contains("name")) dgvStudents.Columns["name"].HeaderText = "FULL NAME";
-            if (dgvStudents.Columns.Contains("gender")) dgvStudents.Columns["gender"].HeaderText = "GENDER";
-            if (dgvStudents.Columns.Contains("year_level")) dgvStudents.Columns["year_level"].HeaderText = "YEAR LEVEL";
-            if (dgvStudents.Columns.Contains("program")) dgvStudents.Columns["program"].HeaderText = "PROGRAM";
-            if (dgvStudents.Columns.Contains("contact_number")) dgvStudents.Columns["contact_number"].HeaderText = "CONTACT NUMBER";
-            if (dgvStudents.Columns.Contains("photo_path")) dgvStudents.Columns["photo_path"].Visible = false;
+
+            if (dgvStudents.Columns.Contains("student_id"))
+                dgvStudents.Columns["student_id"].HeaderText = "STUDENT ID";
+            if (dgvStudents.Columns.Contains("name"))
+                dgvStudents.Columns["name"].HeaderText = "FULL NAME";
+            if (dgvStudents.Columns.Contains("gender"))
+                dgvStudents.Columns["gender"].HeaderText = "GENDER";
+            if (dgvStudents.Columns.Contains("year_level"))
+                dgvStudents.Columns["year_level"].HeaderText = "YEAR LEVEL";
+            if (dgvStudents.Columns.Contains("program"))
+                dgvStudents.Columns["program"].HeaderText = "PROGRAM";
+            if (dgvStudents.Columns.Contains("contact_number"))
+                dgvStudents.Columns["contact_number"].HeaderText = "CONTACT NUMBER";
+            if (dgvStudents.Columns.Contains("photo_path"))
+                dgvStudents.Columns["photo_path"].Visible = false;
         }
 
         public void UpdateSummaryCards()
@@ -338,7 +337,7 @@ namespace EduTrack
             s.YearLevel = cmbYearLevel.Text;
             s.Program = cmbProgram.Text;
             s.ContactNumber = GetCleanInput(txtContact, PH_CONTACT);
-            s.PhotoPath = picStudent.Tag != null ? picStudent.Tag.ToString() : null;
+            s.PhotoData = picStudent.Tag as byte[];
 
             return s;
         }
@@ -371,9 +370,16 @@ namespace EduTrack
 
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    picStudent.Image = Image.FromFile(ofd.FileName);
-                    picStudent.Tag = ofd.FileName;
-                    picStudent.Invalidate();
+                    byte[] photoBytes = File.ReadAllBytes(ofd.FileName);
+                    if (StudentCRUD.IsValidImageBytes(photoBytes))
+                    {
+                        using (MemoryStream ms = new MemoryStream(photoBytes))
+                        {
+                            picStudent.Image = new Bitmap(ms);
+                        }
+                        picStudent.Tag = photoBytes;
+                        picStudent.Invalidate();
+                    }
                 }
             }
         }
@@ -386,8 +392,7 @@ namespace EduTrack
             if (crud.AddStudent(s))
             {
                 ErrorHandler.ShowSuccess("Student record added successfully!");
-                LoadStudentsToGrid();
-                UpdateSummaryCards();
+                RefreshDashboardAnalytics();
                 ClearInputs();
             }
         }
@@ -403,8 +408,7 @@ namespace EduTrack
             if (crud.UpdateStudent(s))
             {
                 ErrorHandler.ShowSuccess("Student record updated successfully!");
-                LoadStudentsToGrid();
-                UpdateSummaryCards();
+                RefreshDashboardAnalytics();
                 ClearInputs();
             }
         }
@@ -419,8 +423,7 @@ namespace EduTrack
                 if (crud.DeleteStudent(id))
                 {
                     ErrorHandler.ShowSuccess("Student record deleted successfully!");
-                    LoadStudentsToGrid();
-                    UpdateSummaryCards();
+                    RefreshDashboardAnalytics();
                     ClearInputs();
                 }
             }
@@ -455,20 +458,33 @@ namespace EduTrack
             txtContact.Text = rawContact;
             txtContact.ForeColor = Color.FromArgb(15, 23, 42);
 
-            string photoPath = row.Cells["photo_path"].Value != DBNull.Value ? row.Cells["photo_path"].Value.ToString() : null;
-
-            if (!string.IsNullOrEmpty(photoPath) && File.Exists(photoPath))
+            object photoCellVal = row.Cells["photo_path"].Value;
+            if (photoCellVal != null &&
+                photoCellVal != DBNull.Value &&
+                photoCellVal is byte[] photoBytes &&
+                StudentCRUD.IsValidImageBytes(photoBytes))
             {
-                picStudent.Image = Image.FromFile(photoPath);
-                picStudent.Tag = photoPath;
+                try
+                {
+                    using (MemoryStream ms = new MemoryStream(photoBytes))
+                    {
+                        picStudent.Image = new Bitmap(ms);
+                    }
+                    picStudent.Tag = photoBytes;
+                }
+                catch
+                {
+                    picStudent.Image = null;
+                    picStudent.Tag = null;
+                }
             }
             else
             {
                 picStudent.Image = null;
                 picStudent.Tag = null;
             }
-            picStudent.Invalidate();
 
+            picStudent.Invalidate();
             txtStudentID.ReadOnly = true;
             btnUpdate.Enabled = true;
             btnDelete.Enabled = true;
@@ -526,12 +542,10 @@ namespace EduTrack
             if (ErrorHandler.ConfirmSignOut())
             {
                 LoginForm loginForm = new LoginForm();
-
                 loginForm.StartPosition = FormStartPosition.Manual;
                 loginForm.Location = this.Location;
                 loginForm.Size = this.Size;
                 loginForm.WindowState = this.WindowState;
-
                 loginForm.Show();
                 this.Close();
             }

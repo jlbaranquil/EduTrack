@@ -6,6 +6,54 @@ namespace EduTrack
 {
     public class StudentCRUD
     {
+
+        public static bool IsValidImageBytes(byte[]? bytes)
+        {
+            if (bytes == null || bytes.Length < 8)
+                return false;
+
+            if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+                return true;
+
+            if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
+                return true;
+
+            if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46)
+                return true;
+
+            if (bytes[0] == 0x42 && bytes[1] == 0x4D)
+                return true;
+
+            if (bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46)
+                return true;
+
+            return false;
+        }
+
+        private void SanitizePhotoColumn(DataTable dt)
+        {
+            if (!dt.Columns.Contains("photo_path"))
+                return;
+
+            foreach (DataRow row in dt.Rows)
+            {
+                if (row["photo_path"] != DBNull.Value)
+                {
+                    if (row["photo_path"] is byte[] rawBytes)
+                    {
+                        if (!IsValidImageBytes(rawBytes))
+                        {
+                            row["photo_path"] = DBNull.Value;
+                        }
+                    }
+                    else
+                    {
+                        row["photo_path"] = DBNull.Value;
+                    }
+                }
+            }
+        }
+
         public bool AuthenticateUser(string username, string password)
         {
             try
@@ -31,8 +79,7 @@ namespace EduTrack
                 return false;
             }
         }
-		
-		
+
         public bool AddStudent(Student student)
         {
             try
@@ -53,7 +100,8 @@ namespace EduTrack
                         cmd.Parameters.AddWithValue("@year", student.YearLevel);
                         cmd.Parameters.AddWithValue("@program", student.Program);
                         cmd.Parameters.AddWithValue("@contact", student.ContactNumber);
-                        cmd.Parameters.AddWithValue("@photo", string.IsNullOrEmpty(student.PhotoPath) ? (object)DBNull.Value : student.PhotoPath);
+                        cmd.Parameters.Add("@photo", MySqlDbType.LongBlob).Value =
+                            IsValidImageBytes(student.PhotoData) ? (object)student.PhotoData! : DBNull.Value;
 
                         int rowsAffected = cmd.ExecuteNonQuery();
                         return rowsAffected > 0;
@@ -66,8 +114,7 @@ namespace EduTrack
                 return false;
             }
         }
-		
-		
+
         public DataTable GetAllStudents()
         {
             DataTable dt = new DataTable();
@@ -85,6 +132,8 @@ namespace EduTrack
                         adapter.Fill(dt);
                     }
                 }
+
+                SanitizePhotoColumn(dt);
             }
             catch (Exception ex)
             {
@@ -93,8 +142,6 @@ namespace EduTrack
 
             return dt;
         }
-
-
 
         public DataTable FilterStudents(string keyword, string yearLevel, string program)
         {
@@ -141,6 +188,8 @@ namespace EduTrack
                         }
                     }
                 }
+
+                SanitizePhotoColumn(dt);
             }
             catch (Exception ex)
             {
@@ -149,9 +198,7 @@ namespace EduTrack
 
             return dt;
         }
-		
-		
-		
+
         public bool UpdateStudent(Student student)
         {
             try
@@ -176,7 +223,8 @@ namespace EduTrack
                         cmd.Parameters.AddWithValue("@year", student.YearLevel);
                         cmd.Parameters.AddWithValue("@program", student.Program);
                         cmd.Parameters.AddWithValue("@contact", student.ContactNumber);
-                        cmd.Parameters.AddWithValue("@photo", string.IsNullOrEmpty(student.PhotoPath) ? (object)DBNull.Value : student.PhotoPath);
+                        cmd.Parameters.Add("@photo", MySqlDbType.LongBlob).Value =
+                            IsValidImageBytes(student.PhotoData) ? (object)student.PhotoData! : DBNull.Value;
 
                         int rowsAffected = cmd.ExecuteNonQuery();
                         return rowsAffected > 0;
@@ -189,9 +237,7 @@ namespace EduTrack
                 return false;
             }
         }
-		
-	
-	
+
         public bool DeleteStudent(string studentID)
         {
             try
@@ -216,8 +262,6 @@ namespace EduTrack
             }
         }
 
-
-
         public int GetTotalStudentCount()
         {
             try
@@ -239,8 +283,6 @@ namespace EduTrack
                 return 0;
             }
         }
-
-
 
         public int GetStudentCountByProgram(string program)
         {
@@ -264,9 +306,5 @@ namespace EduTrack
                 return 0;
             }
         }
-		
-		
-		
-		
     }
 }

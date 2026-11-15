@@ -8,6 +8,6 @@ namespace EduTrack
         public string YearLevel { get; set; }
         public string Program { get; set; }
         public string ContactNumber { get; set; }
-        public string PhotoPath { get; set; }
+        public byte[]? PhotoData { get; set; }
     }
 }
