@@ -6,12 +6,11 @@ namespace EduTrack.Mobile
 {
     public static class MauiProgram
     {
-        // ==================== CONFIGURATION SECTION ====================
+		
         public const string FONT_HEADING_FILE = "Poppins.ttf";
         public const string FONT_HEADING_ALIAS = "Poppins";
         public const string FONT_BODY_FILE = "Inter.ttf";
         public const string FONT_BODY_ALIAS = "Inter";
-        // ===============================================================
 
         public static MauiApp CreateMauiApp()
         {
