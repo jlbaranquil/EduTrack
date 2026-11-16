@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Application
+    x:Class="EduTrack.Mobile.App"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Static Brand & Action Colors -->
+            <Color x:Key="HeaderNavyColor">#0F172A</Color>
+            <Color x:Key="HeaderBadgeBgColor">#1E293B</Color>
+            <Color x:Key="HeaderBadgeBorderColor">#334155</Color>
+            <Color x:Key="PrimaryIndigoColor">#4F46E5</Color>
+            <Color x:Key="SuccessEmeraldColor">#10B981</Color>
+            <Color x:Key="DangerRoseColor">#EF4444</Color>
+            <Color x:Key="SignOutRoseColor">#E11D48</Color>
+
+            <!-- Dynamic Theme Colors (Updated live by ThemeManager.cs) -->
+            <Color x:Key="PageBackgroundColor">#F1F5F9</Color>
+            <Color x:Key="LoginBackgroundColor">#FFFFFF</Color>
+            <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
+            <Color x:Key="CardBorderColor">#E2E8F0</Color>
+            <Color x:Key="InputBackgroundColor">#F8FAFC</Color>
+            <Color x:Key="InputBorderColor">#CBD5E1</Color>
+            <Color x:Key="PrimaryTextColor">#0F172A</Color>
+            <Color x:Key="SecondaryTextColor">#475569</Color>
+            <Color x:Key="MutedTextColor">#94A3B8</Color>
+            <Color x:Key="AvatarBackgroundColor">#DBEAFE</Color>
+            <Color x:Key="AvatarBorderColor">#BFDBFE</Color>
+            <Color x:Key="AvatarTextColor">#2563EB</Color>
+
+            <Style TargetType="RadioButton">
+                <Setter Property="BackgroundColor" Value="Transparent" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
