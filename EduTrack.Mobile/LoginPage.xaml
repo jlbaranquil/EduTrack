@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="EduTrack.Mobile.LoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{DynamicResource LoginBackgroundColor}"
+    NavigationPage.HasNavigationBar="False">
+
+    <Grid RowDefinitions="*, Auto" Padding="24,32,24,24">
+
+        <!-- Main Centered Login Form -->
+        <ScrollView Grid.Row="0" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+
+                <!-- AUTHENTICATION Badge -->
+                <Label
+                    x:Name="lblAuthBadge"
+                    Text="🔒 AUTHENTICATION"
+                    TextColor="{StaticResource PrimaryIndigoColor}"
+                    FontFamily="Inter"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    CharacterSpacing="0.5"
+                    Margin="0,0,0,8" />
+
+                <!-- WELCOME BACK Heading -->
+                <Label
+                    x:Name="lblWelcomeTitle"
+                    Text="WELCOME BACK"
+                    TextColor="{DynamicResource PrimaryTextColor}"
+                    FontFamily="Poppins"
+                    FontSize="30"
+                    FontAttributes="Bold"
+                    Margin="0,0,0,6" />
+
+                <!-- Subtitle -->
+                <Label
+                    x:Name="lblWelcomeSubtitle"
+                    Text="Sign in to manage student directory records"
+                    TextColor="{DynamicResource SecondaryTextColor}"
+                    FontFamily="Inter"
+                    FontSize="15"
+                    Margin="0,0,0,28" />
+
+                <!-- USERNAME Label -->
+                <Label
+                    x:Name="lblUsernameHeader"
+                    Text="👤 USERNAME"
+                    TextColor="{DynamicResource SecondaryTextColor}"
+                    FontFamily="Inter"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    Margin="0,0,0,8" />
+
+                <!-- Username Entry Box -->
+                <Border
+                    BackgroundColor="{DynamicResource InputBackgroundColor}"
+                    Stroke="{DynamicResource InputBorderColor}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="12,4"
+                    Margin="0,0,0,20">
+                    <Entry
+                        x:Name="txtUsername"
+                        Text="admin"
+                        Placeholder="Enter username"
+                        PlaceholderColor="{DynamicResource MutedTextColor}"
+                        TextColor="{DynamicResource PrimaryTextColor}"
+                        FontFamily="Inter"
+                        FontSize="16"
+                        BackgroundColor="Transparent" />
+                </Border>
+
+                <!-- PASSWORD Label -->
+                <Label
+                    x:Name="lblPasswordHeader"
+                    Text="🔑 PASSWORD"
+                    TextColor="{DynamicResource SecondaryTextColor}"
+                    FontFamily="Inter"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    Margin="0,0,0,8" />
+
+                <!-- Password Entry Box -->
+                <Border
+                    BackgroundColor="{DynamicResource InputBackgroundColor}"
+                    Stroke="{DynamicResource InputBorderColor}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="12,4"
+                    Margin="0,0,0,12">
+                    <Entry
+                        x:Name="txtPassword"
+                        Text="admin123"
+                        Placeholder="Enter password"
+                        PlaceholderColor="{DynamicResource MutedTextColor}"
+                        TextColor="{DynamicResource PrimaryTextColor}"
+                        FontFamily="Inter"
+                        FontSize="16"
+                        IsPassword="False"
+                        BackgroundColor="Transparent" />
+                </Border>
+
+                <!-- Show Password Checkbox Row -->
+                <HorizontalStackLayout Spacing="6" Margin="0,0,0,24" VerticalOptions="Center">
+                    <CheckBox
+                        x:Name="chkShowPassword"
+                        IsChecked="True"
+                        Color="{StaticResource PrimaryIndigoColor}"
+                        CheckedChanged="chkShowPassword_CheckedChanged"
+                        VerticalOptions="Center" />
+                    <Label
+                        x:Name="lblShowPassword"
+                        Text="Show Password"
+                        TextColor="{DynamicResource SecondaryTextColor}"
+                        FontFamily="Inter"
+                        FontSize="14"
+                        VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="lblShowPassword_Tapped" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </HorizontalStackLayout>
+
+                <!-- SIGN IN Button -->
+                <Button
+                    x:Name="btnSignIn"
+                    Text="➔  SIGN IN"
+                    BackgroundColor="{StaticResource PrimaryIndigoColor}"
+                    TextColor="White"
+                    FontFamily="Inter"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    HeightRequest="52"
+                    Margin="0,0,0,12"
+                    Clicked="btnSignIn_Clicked" />
+
+                <!-- CLOSE APPLICATION Button -->
+                <Button
+                    x:Name="btnCloseApp"
+                    Text="✖  CLOSE APPLICATION"
+                    BackgroundColor="{DynamicResource InputBackgroundColor}"
+                    TextColor="{DynamicResource SecondaryTextColor}"
+                    BorderColor="{DynamicResource CardBorderColor}"
+                    BorderWidth="1"
+                    FontFamily="Inter"
+                    FontSize="14"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    Clicked="btnCloseApp_Clicked" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Bottom MySQL Connection Status Pill Badge (Read-only) -->
+        <Border
+            Grid.Row="1"
+            x:Name="pnlDbStatus"
+            BackgroundColor="#1E293B"
+            Stroke="#334155"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 20"
+            Padding="20,10"
+            HorizontalOptions="Center"
+            VerticalOptions="End"
+            Margin="0,16,0,4">
+            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                <Label
+                    x:Name="lblDbDot"
+                    Text="●"
+                    TextColor="#10B981"
+                    FontSize="14"
+                    VerticalOptions="Center" />
+                <Label
+                    x:Name="lblDbStatusText"
+                    Text="MySQL Status: Connected (10.0.2.2)"
+                    TextColor="#10B981"
+                    FontFamily="Inter"
+                    FontSize="13.5"
+                    FontAttributes="Bold"
+                    VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>
