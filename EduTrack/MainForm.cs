@@ -565,5 +565,80 @@ namespace EduTrack
         {
             ApplyFilters();
         }
+
+
+        private void RefreshDashboardAnalytics()
+        {
+            // Refresh the student table and summary cards.
+            LoadStudentsToGrid();
+            UpdateSummaryCards();
+
+            // Refresh the charts.
+            analytics.RenderProgramBarChart(plotProgramBar);
+            analytics.RenderYearLevelPieChart(plotYearPie);
+        }
+
+        private void btnToggleView_Click(object sender, EventArgs e)
+        {
+            isAnalyticsView = !isAnalyticsView;
+
+            // Show the analytics dashboard or the student directory.
+            pnlGridContainer.Visible = !isAnalyticsView;
+            pnlFilterBar.Visible = !isAnalyticsView;
+
+            pnlAnalyticsContainer.Visible = isAnalyticsView;
+            pnlDashboardToolbar.Visible = isAnalyticsView;
+
+            if (isAnalyticsView)
+            {
+                btnToggleView.Text = "📋 Student Directory";
+                pnlAnalyticsContainer.BringToFront();
+                pnlDashboardToolbar.BringToFront();
+
+                RefreshDashboardAnalytics();
+            }
+            else
+            {
+                btnToggleView.Text = "📊 Analytics Dashboard";
+                pnlGridContainer.BringToFront();
+                pnlFilterBar.BringToFront();
+            }
+        }
+
+        private void btnRefreshDashboard_Click(object sender, EventArgs e)
+        {
+            RefreshDashboardAnalytics();
+            ErrorHandler.ShowSuccess("Dashboard refreshed successfully.");
+        }
+
+        private void btnExportChart_Click(object sender, EventArgs e)
+        {
+            ReportExporter.ExportBothChartsToImages(
+                plotProgramBar,
+                plotYearPie);
+        }
+
+        private void btnExportSummaryReport_Click(object sender, EventArgs e)
+        {
+            DataTable studentData = crud.GetAllStudents();
+
+            int totalStudents = crud.GetTotalStudentCount();
+            int bsitCount = crud.GetStudentCountByProgram("BSIT");
+            int bscsCount = crud.GetStudentCountByProgram("BSCS");
+
+            int otherCount = totalStudents - bsitCount - bscsCount;
+
+            if (otherCount < 0)
+                otherCount = 0;
+
+            ReportExporter.ExportAnalyticsReport(
+                studentData,
+                totalStudents,
+                bsitCount,
+                bscsCount,
+                otherCount,
+                plotProgramBar,
+                plotYearPie);
+        }
     }
 }

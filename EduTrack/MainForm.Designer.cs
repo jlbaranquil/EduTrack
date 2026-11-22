@@ -1,4 +1,5 @@
-﻿namespace EduTrack
+﻿using ScottPlot.WinForms;
+namespace EduTrack
 {
     partial class MainForm
     {
@@ -104,6 +105,17 @@
             this.lblRecordCount = new Label();
             this.btnExportCsv = new Button();
 
+            // Analytics Dashboard controls
+            this.pnlDashboardToolbar = new Panel();
+            this.btnToggleView = new Button();
+            this.btnRefreshDashboard = new Button();
+            this.btnExportChart = new Button();
+            this.btnExportSummaryReport = new Button();
+
+            this.pnlAnalyticsContainer = new Panel();
+            this.plotProgramBar = new FormsPlot();
+            this.plotYearPie = new FormsPlot();
+
             this.pnlHeader.SuspendLayout();
             this.pnlHeaderLogo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picHeaderLogo)).BeginInit();
@@ -118,6 +130,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.picStudent)).BeginInit();
             this.pnlFilterBar.SuspendLayout();
             this.pnlGridContainer.SuspendLayout();
+
+            // Analytics Dashboard panels
+            this.pnlDashboardToolbar.SuspendLayout();
+            this.pnlAnalyticsContainer.SuspendLayout();
+
             ((System.ComponentModel.ISupportInitialize)(this.dgvStudents)).BeginInit();
             this.SuspendLayout();
 
@@ -857,12 +874,128 @@
             this.btnExportCsv.UseVisualStyleBackColor = false;
             this.btnExportCsv.Click += new System.EventHandler(this.btnExportCsv_Click);
 
+
+            // ==========================================
+            // ANALYTICS DASHBOARD
+            // ==========================================
+
+            // pnlDashboardToolbar
+            this.pnlDashboardToolbar.Anchor =
+                ((AnchorStyles)(((AnchorStyles.Top | AnchorStyles.Left) | AnchorStyles.Right)));
+            this.pnlDashboardToolbar.BackColor = Color.White;
+            this.pnlDashboardToolbar.Location = new Point(350, 170);
+            this.pnlDashboardToolbar.Name = "pnlDashboardToolbar";
+            this.pnlDashboardToolbar.Size = new Size(850, 52);
+            this.pnlDashboardToolbar.TabIndex = 5;
+            this.pnlDashboardToolbar.Visible = false;
+
+            // btnToggleView
+            this.btnToggleView.BackColor = Color.FromArgb(79, 70, 229);
+            this.btnToggleView.Cursor = Cursors.Hand;
+            this.btnToggleView.FlatAppearance.BorderSize = 0;
+            this.btnToggleView.FlatStyle = FlatStyle.Flat;
+            this.btnToggleView.Font = new Font("Segoe UI Emoji", 9F, FontStyle.Bold);
+            this.btnToggleView.ForeColor = Color.White;
+            this.btnToggleView.Location = new Point(650, 16);
+            this.btnToggleView.Name = "btnToggleView";
+            this.btnToggleView.Size = new Size(190, 30);
+            this.btnToggleView.TabIndex = 6;
+            this.btnToggleView.Text = "📊 Analytics Dashboard";
+            this.btnToggleView.UseVisualStyleBackColor = false;
+            this.btnToggleView.Click += new System.EventHandler(this.btnToggleView_Click);
+
+            // Keep the toggle button visible in the header.
+            this.pnlHeader.Controls.Add(this.btnToggleView);
+
+            // btnRefreshDashboard
+            this.btnRefreshDashboard.BackColor = Color.FromArgb(226, 232, 240);
+            this.btnRefreshDashboard.Cursor = Cursors.Hand;
+            this.btnRefreshDashboard.FlatAppearance.BorderSize = 0;
+            this.btnRefreshDashboard.FlatStyle = FlatStyle.Flat;
+            this.btnRefreshDashboard.Font = new Font("Segoe UI Emoji", 9F, FontStyle.Bold);
+            this.btnRefreshDashboard.ForeColor = Color.FromArgb(51, 65, 85);
+            this.btnRefreshDashboard.Location = new Point(175, 10);
+            this.btnRefreshDashboard.Name = "btnRefreshDashboard";
+            this.btnRefreshDashboard.Size = new Size(125, 32);
+            this.btnRefreshDashboard.TabIndex = 1;
+            this.btnRefreshDashboard.Text = "🔄 Refresh";
+            this.btnRefreshDashboard.UseVisualStyleBackColor = false;
+            this.btnRefreshDashboard.Click += new System.EventHandler(this.btnRefreshDashboard_Click);
+
+            // btnExportChart
+            this.btnExportChart.BackColor = Color.FromArgb(16, 185, 129);
+            this.btnExportChart.Cursor = Cursors.Hand;
+            this.btnExportChart.FlatAppearance.BorderSize = 0;
+            this.btnExportChart.FlatStyle = FlatStyle.Flat;
+            this.btnExportChart.Font = new Font("Segoe UI Emoji", 9F, FontStyle.Bold);
+            this.btnExportChart.ForeColor = Color.White;
+            this.btnExportChart.Location = new Point(310, 10);
+            this.btnExportChart.Name = "btnExportChart";
+            this.btnExportChart.Size = new Size(145, 32);
+            this.btnExportChart.TabIndex = 2;
+            this.btnExportChart.Text = "📥 Export Charts";
+            this.btnExportChart.UseVisualStyleBackColor = false;
+            this.btnExportChart.Click += new System.EventHandler(this.btnExportChart_Click);
+
+            // btnExportSummaryReport
+            this.btnExportSummaryReport.BackColor = Color.FromArgb(15, 23, 42);
+            this.btnExportSummaryReport.Cursor = Cursors.Hand;
+            this.btnExportSummaryReport.FlatAppearance.BorderSize = 0;
+            this.btnExportSummaryReport.FlatStyle = FlatStyle.Flat;
+            this.btnExportSummaryReport.Font = new Font("Segoe UI Emoji", 9F, FontStyle.Bold);
+            this.btnExportSummaryReport.ForeColor = Color.White;
+            this.btnExportSummaryReport.Location = new Point(465, 10);
+            this.btnExportSummaryReport.Name = "btnExportSummaryReport";
+            this.btnExportSummaryReport.Size = new Size(180, 32);
+            this.btnExportSummaryReport.TabIndex = 3;
+            this.btnExportSummaryReport.Text = "📄 Export PDF Report";
+            this.btnExportSummaryReport.UseVisualStyleBackColor = false;
+            this.btnExportSummaryReport.Click += new System.EventHandler(this.btnExportSummaryReport_Click);
+
+            // Add toolbar buttons.
+            this.pnlDashboardToolbar.Controls.Add(this.btnRefreshDashboard);
+            this.pnlDashboardToolbar.Controls.Add(this.btnExportChart);
+            this.pnlDashboardToolbar.Controls.Add(this.btnExportSummaryReport);
+
+            // pnlAnalyticsContainer
+            this.pnlAnalyticsContainer.Anchor =
+                ((AnchorStyles)((((AnchorStyles.Top | AnchorStyles.Bottom) |
+                AnchorStyles.Left) | AnchorStyles.Right)));
+            this.pnlAnalyticsContainer.BackColor = Color.White;
+            this.pnlAnalyticsContainer.Location = new Point(350, 234);
+            this.pnlAnalyticsContainer.Name = "pnlAnalyticsContainer";
+            this.pnlAnalyticsContainer.Size = new Size(850, 452);
+            this.pnlAnalyticsContainer.TabIndex = 6;
+            this.pnlAnalyticsContainer.Visible = false;
+
+            // plotProgramBar
+            this.plotProgramBar.Location = new Point(10, 10);
+            this.plotProgramBar.Name = "plotProgramBar";
+            this.plotProgramBar.Size = new Size(405, 430);
+            this.plotProgramBar.TabIndex = 0;
+
+            // plotYearPie
+            this.plotYearPie.Location = new Point(425, 10);
+            this.plotYearPie.Name = "plotYearPie";
+            this.plotYearPie.Size = new Size(405, 430);
+            this.plotYearPie.TabIndex = 1;
+
+            // Add charts to analytics panel.
+            this.pnlAnalyticsContainer.Controls.Add(this.plotProgramBar);
+            this.pnlAnalyticsContainer.Controls.Add(this.plotYearPie);
+
+
             // MainForm
             this.AutoScaleDimensions = new SizeF(6F, 13F);
             this.AutoScaleMode = AutoScaleMode.Font;
             this.BackColor = Color.FromArgb(248, 250, 252);
             this.ClientSize = new Size(1220, 704);
             this.MinimumSize = new Size(1220, 704);
+            // Add Analytics Dashboard panels
+            this.Controls.Add(this.pnlAnalyticsContainer);
+            this.Controls.Add(this.pnlDashboardToolbar);
+
+            // Existing panels
             this.Controls.Add(this.pnlGridContainer);
             this.Controls.Add(this.pnlFilterBar);
             this.Controls.Add(this.pnlStudentDetails);
@@ -897,6 +1030,11 @@
             this.pnlFilterBar.PerformLayout();
             this.pnlGridContainer.ResumeLayout(false);
             this.pnlGridContainer.PerformLayout();
+
+            // Analytics Dashboard panels
+            this.pnlDashboardToolbar.ResumeLayout(false);
+            this.pnlAnalyticsContainer.ResumeLayout(false);
+
             ((System.ComponentModel.ISupportInitialize)(this.dgvStudents)).EndInit();
             this.ResumeLayout(false);
         }
@@ -974,6 +1112,16 @@
         private DataGridView dgvStudents;
         private Label lblRecordCount;
         private Button btnExportCsv;
-			
+        // Analytics Dashboard fields
+        private Panel pnlDashboardToolbar;
+        private Button btnToggleView;
+        private Button btnRefreshDashboard;
+        private Button btnExportChart;
+        private Button btnExportSummaryReport;
+
+        private Panel pnlAnalyticsContainer;
+        private FormsPlot plotProgramBar;
+        private FormsPlot plotYearPie;
+
     }
 }
