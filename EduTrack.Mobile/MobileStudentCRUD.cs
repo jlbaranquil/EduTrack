@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,26 +9,33 @@ namespace EduTrack.Mobile
 {
     public class MobileStudentCRUD
     {
-        private static string CURRENT_YEAR => DateTime.Now.Year.ToString(); // always get current year
+        public const string FILTER_ALL_YEARS = "All Years";
+        public const string FILTER_ALL_PROGRAMS = "All Programs";
+        public const string STUDENT_ID_PREFIX = "2026-";
 
-        // Maps database records to MobileStudent objects
         private static MobileStudent MapStudent(MySqlDataReader reader)
         {
+            byte[]? photoBytes = null;
+            object photoObj = reader["photo_path"];
+            if (photoObj != DBNull.Value &&
+                photoObj is byte[] rawBytes &&
+                PhotoDownloader.IsValidImageBytes(rawBytes))
+            {
+                photoBytes = rawBytes;
+            }
+
             return new MobileStudent
             {
-                StudentID = reader["student_id"].ToString() ?? string.Empty,
-                Name = reader["name"].ToString() ?? string.Empty,
-                Gender = reader["gender"].ToString() ?? string.Empty,
-                YearLevel = reader["year_level"].ToString() ?? string.Empty,
-                Program = reader["program"].ToString() ?? string.Empty,
-                ContactNumber = reader["contact_number"].ToString() ?? string.Empty,
-                PhotoData = reader["photo_path"] == DBNull.Value
-                    ? null
-                    : (byte[])reader["photo_path"]
+                StudentID = reader["student_id"]?.ToString() ?? string.Empty,
+                Name = reader["name"]?.ToString() ?? string.Empty,
+                Gender = reader["gender"]?.ToString() ?? string.Empty,
+                YearLevel = reader["year_level"]?.ToString() ?? string.Empty,
+                Program = reader["program"]?.ToString() ?? string.Empty,
+                ContactNumber = reader["contact_number"]?.ToString() ?? string.Empty,
+                PhotoData = photoBytes
             };
         }
 
-        // Authenticates a user asynchronously against the MySQL users table
         public async Task<bool> AuthenticateUserAsync(
             string username, string password, Page? page = null)
         {
@@ -45,8 +51,8 @@ namespace EduTrack.Mobile
 
                 await using var command = new MySqlCommand(query, connection);
 
-                command.Parameters.AddWithValue("@u", username);
-                command.Parameters.AddWithValue("@p", password);
+                command.Parameters.AddWithValue("@u", (username ?? string.Empty).Trim());
+                command.Parameters.AddWithValue("@p", (password ?? string.Empty).Trim());
 
                 object? result = await command.ExecuteScalarAsync();
 
@@ -55,11 +61,11 @@ namespace EduTrack.Mobile
             catch (Exception ex)
             {
                 Debug.WriteLine($"Authentication error: {ex.Message}");
+                await MobileErrorHandler.ShowDatabaseErrorAsync(page, ex, "authenticating user");
                 return false;
             }
         }
 
-        // Retrieves all student records ordered by student_id ASC asynchronously
         public async Task<List<MobileStudent>> GetAllStudentsAsync(
             Page? page = null)
         {
@@ -87,12 +93,12 @@ namespace EduTrack.Mobile
             catch (Exception ex)
             {
                 Debug.WriteLine($"Get students error: {ex.Message}");
+                await MobileErrorHandler.ShowDatabaseErrorAsync(page, ex, "loading student records");
             }
 
             return students;
         }
 
-        // Filters student records asynchronously by keyword (Student ID or Name), Year Level, and Program
         public async Task<List<MobileStudent>> FilterStudentsAsync(
             string keyword,
             string yearLevel,
@@ -114,14 +120,12 @@ namespace EduTrack.Mobile
                         (student_id LIKE @keyword
                          OR name LIKE @keyword)";
 
-                if (!string.IsNullOrWhiteSpace(yearLevel) &&
-                    yearLevel != "All")
+                if (!string.IsNullOrWhiteSpace(yearLevel) && yearLevel != FILTER_ALL_YEARS && yearLevel != "All")
                 {
                     query += " AND year_level = @yearLevel";
                 }
 
-                if (!string.IsNullOrWhiteSpace(program) &&
-                    program != "All")
+                if (!string.IsNullOrWhiteSpace(program) && program != FILTER_ALL_PROGRAMS && program != "All")
                 {
                     query += " AND program = @program";
                 }
@@ -135,14 +139,12 @@ namespace EduTrack.Mobile
                     $"%{keyword?.Trim() ?? string.Empty}%"
                 );
 
-                if (!string.IsNullOrWhiteSpace(yearLevel) &&
-                    yearLevel != "All")
+                if (!string.IsNullOrWhiteSpace(yearLevel) && yearLevel != FILTER_ALL_YEARS && yearLevel != "All")
                 {
                     command.Parameters.AddWithValue("@yearLevel", yearLevel);
                 }
 
-                if (!string.IsNullOrWhiteSpace(program) &&
-                    program != "All")
+                if (!string.IsNullOrWhiteSpace(program) && program != FILTER_ALL_PROGRAMS && program != "All")
                 {
                     command.Parameters.AddWithValue("@program", program);
                 }
@@ -157,12 +159,12 @@ namespace EduTrack.Mobile
             catch (Exception ex)
             {
                 Debug.WriteLine($"Filter students error: {ex.Message}");
+                await MobileErrorHandler.ShowDatabaseErrorAsync(page, ex, "loading student records");
             }
 
             return students;
         }
 
-        // Returns the total count of student records in the database asynchronously
         public async Task<int> GetTotalStudentCountAsync()
         {
             try
@@ -185,7 +187,6 @@ namespace EduTrack.Mobile
             }
         }
 
-        // Generates the next sequential Student ID (e.g., "2026-0013") asynchronously
         public async Task<string> GenerateNextStudentIdAsync()
         {
             try
@@ -204,35 +205,31 @@ namespace EduTrack.Mobile
 
                 command.Parameters.AddWithValue(
                     "@prefix",
-                    CURRENT_YEAR + "-%"
+                    STUDENT_ID_PREFIX + "%"
                 );
 
                 object? result = await command.ExecuteScalarAsync();
 
-                int nextNumber = 1;
-
                 if (result != null && result != DBNull.Value)
                 {
-                    string lastId = result.ToString() ?? "";
+                    string lastId = result.ToString() ?? string.Empty;
                     string[] parts = lastId.Split('-');
 
                     if (parts.Length == 2 &&
                         int.TryParse(parts[1], out int lastNumber))
                     {
-                        nextNumber = lastNumber + 1;
+                        return $"{STUDENT_ID_PREFIX}{(lastNumber + 1):D4}";
                     }
                 }
-
-                return $"{CURRENT_YEAR}-{nextNumber:D4}";
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Generate Student ID error: {ex.Message}");
-                return string.Empty;
             }
+
+            return $"{STUDENT_ID_PREFIX}0013";
         }
 
-        // Inserts a new student record into MySQL asynchronously
         public async Task<bool> AddStudentAsync(
             MobileStudent student, Page? page = null)
         {
@@ -243,11 +240,11 @@ namespace EduTrack.Mobile
 
                 const string query = @"
                     INSERT INTO students
-                    (student_id, name, gender, year_level,
-                     program, contact_number, photo_path)
+                        (student_id, name, gender, year_level,
+                         program, contact_number, photo_path)
                     VALUES
-                    (@id, @name, @gender, @yearLevel,
-                     @program, @contact, @photo)";
+                        (@id, @name, @gender, @yearLevel,
+                         @program, @contact, @photo)";
 
                 await using var command = new MySqlCommand(query, connection);
 
@@ -263,9 +260,9 @@ namespace EduTrack.Mobile
                     MySqlDbType.LongBlob
                 );
 
-                photoParameter.Value = student.PhotoData == null
-                    ? DBNull.Value
-                    : student.PhotoData;
+                photoParameter.Value = PhotoDownloader.IsValidImageBytes(student.PhotoData)
+                    ? student.PhotoData!
+                    : DBNull.Value;
 
                 int rowsAffected = await command.ExecuteNonQueryAsync();
 
@@ -274,11 +271,11 @@ namespace EduTrack.Mobile
             catch (Exception ex)
             {
                 Debug.WriteLine($"Add student error: {ex.Message}");
+                await MobileErrorHandler.ShowDatabaseErrorAsync(page, ex, "adding student");
                 return false;
             }
         }
 
-        // Updates an existing student record in MySQL asynchronously
         public async Task<bool> UpdateStudentAsync(
             MobileStudent student, Page? page = null)
         {
@@ -311,9 +308,9 @@ namespace EduTrack.Mobile
                     MySqlDbType.LongBlob
                 );
 
-                photoParameter.Value = student.PhotoData == null
-                    ? DBNull.Value
-                    : student.PhotoData;
+                photoParameter.Value = PhotoDownloader.IsValidImageBytes(student.PhotoData)
+                    ? student.PhotoData!
+                    : DBNull.Value;
 
                 int rowsAffected = await command.ExecuteNonQueryAsync();
 
@@ -322,11 +319,11 @@ namespace EduTrack.Mobile
             catch (Exception ex)
             {
                 Debug.WriteLine($"Update student error: {ex.Message}");
+                await MobileErrorHandler.ShowDatabaseErrorAsync(page, ex, "updating student");
                 return false;
             }
         }
 
-        // Deletes a student record by Student ID from MySQL asynchronously
         public async Task<bool> DeleteStudentAsync(
             string studentId, Page? page = null)
         {
@@ -350,6 +347,7 @@ namespace EduTrack.Mobile
             catch (Exception ex)
             {
                 Debug.WriteLine($"Delete student error: {ex.Message}");
+                await MobileErrorHandler.ShowDatabaseErrorAsync(page, ex, "deleting student");
                 return false;
             }
         }

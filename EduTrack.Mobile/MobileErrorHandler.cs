@@ -1,4 +1,3 @@
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,14 +7,19 @@ namespace EduTrack.Mobile
 {
     public static class MobileErrorHandler
     {
-        // Validates login inputs
+
+        public const string SELECT_YEAR_PLACEHOLDER = "-- Select Year --";
+        public const string SELECT_PROGRAM_PLACEHOLDER = "-- Select Program --";
+        public const int REQUIRED_CONTACT_DIGITS = 11;
+
+
         public static async Task<bool> ValidateLoginInputsAsync(
             Page page, string username, string password)
         {
             if (string.IsNullOrWhiteSpace(username))
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Please enter your username.",
                     "OK"
                 );
@@ -26,7 +30,7 @@ namespace EduTrack.Mobile
             if (string.IsNullOrWhiteSpace(password))
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Please enter your password.",
                     "OK"
                 );
@@ -37,14 +41,13 @@ namespace EduTrack.Mobile
             return true;
         }
 
-        // Validates student inputs
         public static async Task<bool> ValidateStudentInputsAsync(
             Page page, MobileStudent? student)
         {
             if (student == null)
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Student information is missing.",
                     "OK"
                 );
@@ -52,11 +55,10 @@ namespace EduTrack.Mobile
                 return false;
             }
 
-            // Required fields
             if (string.IsNullOrWhiteSpace(student.StudentID))
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Student ID is required.",
                     "OK"
                 );
@@ -67,7 +69,7 @@ namespace EduTrack.Mobile
             if (string.IsNullOrWhiteSpace(student.Name))
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Please enter the student's full name.",
                     "OK"
                 );
@@ -78,7 +80,7 @@ namespace EduTrack.Mobile
             if (string.IsNullOrWhiteSpace(student.Gender))
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Please select a gender.",
                     "OK"
                 );
@@ -86,11 +88,13 @@ namespace EduTrack.Mobile
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(student.YearLevel) ||
-                student.YearLevel == "Select Year Level")
+            string yearLevel = student.YearLevel?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(yearLevel) ||
+                yearLevel == SELECT_YEAR_PLACEHOLDER ||
+                yearLevel == "Select Year Level")
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Please select a year level.",
                     "OK"
                 );
@@ -98,11 +102,13 @@ namespace EduTrack.Mobile
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(student.Program) ||
-                student.Program == "Select Program")
+            string program = student.Program?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(program) ||
+                program == SELECT_PROGRAM_PLACEHOLDER ||
+                program == "Select Program")
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Please select a program.",
                     "OK"
                 );
@@ -113,7 +119,7 @@ namespace EduTrack.Mobile
             if (string.IsNullOrWhiteSpace(student.ContactNumber))
             {
                 await page.DisplayAlertAsync(
-                    "Validation Error",
+                    "Validation Warning",
                     "Please enter a contact number.",
                     "OK"
                 );
@@ -121,15 +127,14 @@ namespace EduTrack.Mobile
                 return false;
             }
 
-            // Validate 11-digit numeric contact number
             string contact = student.ContactNumber.Trim();
 
-            if (contact.Length != 11 ||
+            if (contact.Length != REQUIRED_CONTACT_DIGITS ||
                 !contact.All(char.IsDigit))
             {
                 await page.DisplayAlertAsync(
                     "Invalid Contact Number",
-                    "Contact number must contain exactly 11 digits.",
+                    "Please enter a valid 11-digit contact number (e.g., 09171234567).",
                     "OK"
                 );
 
@@ -139,19 +144,27 @@ namespace EduTrack.Mobile
             return true;
         }
 
-        // Confirms student deletion
         public static async Task<bool> ConfirmDeleteAsync(
             Page page, string studentId)
         {
+            if (string.IsNullOrWhiteSpace(studentId))
+            {
+                await page.DisplayAlertAsync(
+                    "No Student Selected",
+                    "Please enter or select a valid Student ID first.",
+                    "OK"
+                );
+                return false;
+            }
+
             return await page.DisplayAlertAsync(
                 "Confirm Delete",
-                $"Are you sure you want to delete student {studentId}?",
+                $"Are you sure you want to delete student record ({studentId})? This action cannot be undone.",
                 "Delete",
                 "Cancel"
             );
         }
 
-        // Confirms sign out
         public static async Task<bool> ConfirmSignOutAsync(Page page)
         {
             return await page.DisplayAlertAsync(
@@ -162,7 +175,6 @@ namespace EduTrack.Mobile
             );
         }
 
-        // Displays database errors
         public static async Task ShowDatabaseErrorAsync(
             Page? page, Exception ex, string action)
         {
@@ -176,14 +188,10 @@ namespace EduTrack.Mobile
             }
 
             string message =
-                $"Unable to {action}.\n\n" +
-                $"Error: {ex.Message}\n\n" +
-                $"Troubleshooting:\n" +
-                $"- Check your internet connection.\n" +
-                $"- Ensure MySQL Server is running.\n" +
-                $"- Verify the database connection settings.\n" +
-                $"- Check MYSQL_HOST ({MobileDatabase.MYSQL_HOST}).\n" +
-                $"- Ensure your firewall allows connections on port 3306.";
+                $"A database error occurred while {action}.\n\n" +
+                $"Active Host: {MobileDatabase.ActiveHost}\n" +
+                $"Details: {ex.Message}\n\n" +
+                "Tip: Ensure MySQL Server is running and reachable via 10.0.2.2 (Emulator), localhost, or your LAN IP.";
 
             await page.DisplayAlertAsync(
                 "Database Error",
@@ -192,7 +200,6 @@ namespace EduTrack.Mobile
             );
         }
 
-        // Displays success messages
         public static async Task ShowSuccessAsync(
             Page page, string message)
         {
