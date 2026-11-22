@@ -21,21 +21,20 @@
                              Opacity="0">
 
             <!-- App Logo Container -->
-            <Border WidthRequest="110"
-                    HeightRequest="110"
-                    HorizontalOptions="Center"
-                    BackgroundColor="#1E293B"
-                    Stroke="#60A5FA"
-                    StrokeThickness="2"
-                    StrokeShape="RoundRectangle 28">
+			<Border WidthRequest="110"
+					HeightRequest="110"
+					HorizontalOptions="Center"
+					BackgroundColor="Transparent"
+					Stroke="Transparent"
+					StrokeThickness="0">
                 <Grid>
-                    <Image x:Name="imgSplashLogo"
-                           Source="edutrack_logo.png"
-                           WidthRequest="76"
-                           HeightRequest="76"
-                           Aspect="AspectFit"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center" />
+					<Image x:Name="imgSplashLogo"
+						   Source="edutrack_logo.png"
+						   WidthRequest="120"
+						   HeightRequest="120"
+						   Aspect="AspectFit"
+						   HorizontalOptions="Center"
+						   VerticalOptions="Center" />
                 </Grid>
             </Border>
 
