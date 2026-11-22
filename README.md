@@ -1,7 +1,7 @@
 <div align="center">
   <img src="EduTrack/Assets/edutrack-logo.svg" alt="EduTrack Logo" width="150"/>
 
-  # EduTrack — Integrated Student Information & Mobile Analytics Ecosystem
+  # EduTrack - Integrated Student Information & Mobile Analytics Ecosystem
   **CS 106 Final Project** • Group 8
 </div>
 
