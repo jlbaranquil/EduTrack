@@ -1,8 +1,8 @@
 <div align="center">
   <img src="EduTrack/Assets/edutrack-logo.svg" alt="EduTrack Logo" width="150"/>
 
-  # EduTrack: Student Information System
-  **CS 106 Midterm Project** • Group 8
+  # EduTrack — Integrated Student Information & Mobile Analytics Ecosystem
+  **CS 106 Final Project** • Group 8
 </div>
 
 
@@ -13,9 +13,9 @@
 ## Team Members & Task Designation
 | Member | Name | Assigned Role & Key Deliverables |
 | :--- | :--- | :--- |
-| **Member 1** | **Sean Ronald Vibar** | Desktop ScottPlot Analytics & Dashboard (`StudentAnalytics.cs`, `ReportExporter.cs`, `MainForm.cs`) |
-| **Member 2** | **Angelica Abalita** | .NET MAUI Mobile UI, Theme & Navigation (`App.xaml`, `ThemeManager.cs`, `SplashPage`, `LoginPage`, `MainPage`, `StudentDetailsPage`) |
-| **Member 3** | **Jhon Lloyd Baranquil** | Async MySQL Data Sync & Host Routing (`MobileStudent.cs`, `MobileDatabase.cs`, `MobileStudentCRUD.cs`, `MobileErrorHandler.cs`, `PhotoDownloader.cs`) |
+| **Member 1** | **Angelica Abalita** | Desktop ScottPlot Analytics & Dashboard (`StudentAnalytics.cs`, `ReportExporter.cs`, `MainForm.cs`) |
+| **Member 2** | **Jhon Lloyd Baranquil** | .NET MAUI Mobile UI, Theme & Navigation (`App.xaml`, `ThemeManager.cs`, `SplashPage`, `LoginPage`, `MainPage`, `StudentDetailsPage`) |
+| **Member 3** | **Sean Ronald Vibar** | Async MySQL Data Sync & Host Routing (`MobileStudent.cs`, `MobileDatabase.cs`, `MobileStudentCRUD.cs`, `MobileErrorHandler.cs`, `PhotoDownloader.cs`) |
 | **Member 4** | **John Philip Lipio** | Installer Packaging & Documentation (`Installers/EduTrack-Setup.msi`, `Installers/EduTrack-Mobile-Signed.apk`, `Docs/EduTrack-Docs.ctb`, `README.md`) |
 
 ### Core Capabilities
