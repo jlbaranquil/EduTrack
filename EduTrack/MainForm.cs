@@ -129,9 +129,11 @@ namespace EduTrack
             ApplyRoundedCorners(btnDelete, 8, Color.Empty);
             ApplyRoundedCorners(btnClear, 8, inputBorder);
             ApplyRoundedCorners(pnlFilterBar, 10, thinBorder);
+            ApplyRoundedCorners(pnlDashboardToolbar, 10, thinBorder);
             ApplyRoundedCorners(btnToggleView, 6, Color.Empty);
-            ApplyRoundedCorners(btnRefreshDashboard, 6, inputBorder);
+            ApplyRoundedCorners(btnRefreshDashboard, 6, Color.Empty);
             ApplyRoundedCorners(pnlGridContainer, 10, thinBorder);
+            ApplyRoundedCorners(pnlAnalyticsContainer, 10, thinBorder);
             ApplyRoundedCorners(btnExportChart, 6, Color.Empty);
             ApplyRoundedCorners(btnExportSummaryReport, 6, Color.Empty);
             ApplyRoundedCorners(btnExportCsv, 6, Color.Empty);
@@ -566,14 +568,23 @@ namespace EduTrack
             ApplyFilters();
         }
 
-
-        private void RefreshDashboardAnalytics()
+        public void RefreshDashboardAnalytics()
         {
-            // Refresh the student table and summary cards.
+            bool isConnected = StudentDatabase.TestConnection();
+            if (isConnected)
+            {
+                lblDbStatus.Text = "🟢 DB Connected";
+                lblDbStatus.ForeColor = Color.FromArgb(16, 185, 129);
+            }
+            else
+            {
+                lblDbStatus.Text = "🔴 DB Offline";
+                lblDbStatus.ForeColor = Color.FromArgb(244, 63, 94);
+            }
+
             LoadStudentsToGrid();
             UpdateSummaryCards();
 
-            // Refresh the charts.
             analytics.RenderProgramBarChart(plotProgramBar);
             analytics.RenderYearLevelPieChart(plotYearPie);
         }
@@ -582,7 +593,6 @@ namespace EduTrack
         {
             isAnalyticsView = !isAnalyticsView;
 
-            // Show the analytics dashboard or the student directory.
             pnlGridContainer.Visible = !isAnalyticsView;
             pnlFilterBar.Visible = !isAnalyticsView;
 
@@ -592,6 +602,7 @@ namespace EduTrack
             if (isAnalyticsView)
             {
                 btnToggleView.Text = "📋 Student Directory";
+                btnToggleView.BackColor = Color.FromArgb(15, 23, 42);
                 pnlAnalyticsContainer.BringToFront();
                 pnlDashboardToolbar.BringToFront();
 
@@ -600,6 +611,7 @@ namespace EduTrack
             else
             {
                 btnToggleView.Text = "📊 Analytics Dashboard";
+                btnToggleView.BackColor = Color.FromArgb(79, 70, 229);
                 pnlGridContainer.BringToFront();
                 pnlFilterBar.BringToFront();
             }

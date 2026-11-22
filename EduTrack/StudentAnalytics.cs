@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
@@ -9,30 +8,24 @@ namespace EduTrack
 {
     public class StudentAnalytics
     {
-        // Gets student enrollment grouped by academic program.
         public Dictionary<string, double> GetEnrollmentByProgram()
         {
             return GetEnrollmentCounts("program", "program enrollment");
         }
 
-        // Gets student enrollment grouped by year level.
         public Dictionary<string, double> GetEnrollmentByYearLevel()
         {
             return GetEnrollmentCounts("year_level", "year-level enrollment");
         }
 
-        // Gets student enrollment grouped by gender.
         public Dictionary<string, double> GetEnrollmentByGender()
         {
             return GetEnrollmentCounts("gender", "gender enrollment");
         }
 
-        // Shared method for retrieving enrollment counts from MySQL.
-        private Dictionary<string, double> GetEnrollmentCounts(
-            string columnName, string action)
+        private Dictionary<string, double> GetEnrollmentCounts(string columnName, string action)
         {
-            Dictionary<string, double> counts =
-                new Dictionary<string, double>();
+            Dictionary<string, double> counts = new Dictionary<string, double>();
 
             try
             {
@@ -50,12 +43,8 @@ namespace EduTrack
                     {
                         while (reader.Read())
                         {
-                            string category =
-                                reader["category"].ToString() ?? "Unknown";
-
-                            double total =
-                                Convert.ToDouble(reader["total"]);
-
+                            string category = reader["category"].ToString() ?? "Unknown";
+                            double total = Convert.ToDouble(reader["total"]);
                             counts[category] = total;
                         }
                     }
@@ -69,22 +58,25 @@ namespace EduTrack
             return counts;
         }
 
-        // Renders student enrollment by program as a bar chart.
         public void RenderProgramBarChart(FormsPlot plotControl)
         {
             if (plotControl == null)
                 return;
 
-            Dictionary<string, double> data = GetEnrollmentByProgram();
-
             plotControl.Plot.Clear();
+            plotControl.Plot.Axes.Rules.Clear();
+
+            Dictionary<string, double> data = GetEnrollmentByProgram();
 
             if (data.Count == 0)
             {
+                plotControl.Plot.Title("Enrollment by Program (No Data)");
+                plotControl.Plot.Axes.AutoScale();
                 plotControl.Refresh();
                 return;
             }
 
+            string[] hexColors = new string[] { "#4F46E5", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#06B6D4" };
             string[] labels = new string[data.Count];
             ScottPlot.Bar[] bars = new ScottPlot.Bar[data.Count];
 
@@ -93,17 +85,22 @@ namespace EduTrack
             foreach (var item in data)
             {
                 labels[index] = item.Key;
+                string colorHex = hexColors[index % hexColors.Length];
 
                 bars[index] = new ScottPlot.Bar
                 {
                     Position = index,
-                    Value = item.Value
+                    Value = item.Value,
+                    FillColor = ScottPlot.Color.FromHex(colorHex),
+                    Label = item.Value.ToString("0")
                 };
 
                 index++;
             }
 
-            plotControl.Plot.Add.Bars(bars);
+            var barPlot = plotControl.Plot.Add.Bars(bars);
+            barPlot.ValueLabelStyle.Bold = true;
+            barPlot.ValueLabelStyle.FontSize = 12;
 
             ScottPlot.Tick[] ticks = new ScottPlot.Tick[labels.Length];
 
@@ -112,51 +109,77 @@ namespace EduTrack
                 ticks[i] = new ScottPlot.Tick(i, labels[i]);
             }
 
-            plotControl.Plot.Axes.Bottom.TickGenerator =
-                new ScottPlot.TickGenerators.NumericManual(ticks);
+            plotControl.Plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
+            plotControl.Plot.Axes.Margins(bottom: 0, top: 0.25);
 
             plotControl.Plot.Title("Student Enrollment by Program");
-            plotControl.Plot.XLabel("Program");
+            plotControl.Plot.XLabel("Academic Program");
             plotControl.Plot.YLabel("Number of Students");
 
             plotControl.Plot.Axes.AutoScale();
             plotControl.Refresh();
         }
 
-        // Renders student enrollment by year level as a donut/pie chart.
         public void RenderYearLevelPieChart(FormsPlot plotControl)
         {
             if (plotControl == null)
                 return;
 
-            Dictionary<string, double> data = GetEnrollmentByYearLevel();
-
             plotControl.Plot.Clear();
+            plotControl.Plot.Axes.Rules.Clear();
+
+            Dictionary<string, double> data = GetEnrollmentByYearLevel();
 
             if (data.Count == 0)
             {
+                plotControl.Plot.Title("Students by Year Level (No Data)");
+                plotControl.Plot.Axes.AutoScale();
                 plotControl.Refresh();
                 return;
             }
 
-            List<ScottPlot.PieSlice> slices =
-                new List<ScottPlot.PieSlice>();
+            string[] hexColors = new string[] { "#4F46E5", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444" };
+            List<ScottPlot.PieSlice> slices = new List<ScottPlot.PieSlice>();
+            int colorIndex = 0;
 
             foreach (var item in data)
             {
                 slices.Add(new ScottPlot.PieSlice
                 {
                     Value = item.Value,
-                    Label = item.Key
+                    Label = item.Key + " (" + item.Value.ToString("0") + ")",
+                    LegendText = item.Key + " - " + item.Value.ToString("0"),
+                    FillColor = ScottPlot.Color.FromHex(hexColors[colorIndex % hexColors.Length])
                 });
+
+                colorIndex++;
             }
 
             var pie = plotControl.Plot.Add.Pie(slices);
-
             pie.DonutFraction = 0.45;
+            pie.ManageAxisLimits = false;
 
-            plotControl.Plot.Title("Student Enrollment by Year Level");
             plotControl.Plot.ShowLegend();
+            plotControl.Plot.Axes.Frameless();
+            plotControl.Plot.HideGrid();
+            plotControl.Plot.Title("Student Distribution by Year Level");
+
+            plotControl.Plot.Axes.AutoScale();
+
+            if (plotControl.Width >= plotControl.Height)
+            {
+                var squareRule = new ScottPlot.AxisRules.SquarePreserveY(
+                    plotControl.Plot.Axes.Bottom,
+                    plotControl.Plot.Axes.Left);
+                plotControl.Plot.Axes.Rules.Add(squareRule);
+            }
+            else
+            {
+                var squareRule = new ScottPlot.AxisRules.SquarePreserveX(
+                    plotControl.Plot.Axes.Bottom,
+                    plotControl.Plot.Axes.Left);
+                plotControl.Plot.Axes.Rules.Add(squareRule);
+            }
 
             plotControl.Refresh();
         }

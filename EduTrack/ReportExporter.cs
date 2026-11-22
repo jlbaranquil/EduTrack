@@ -1,4 +1,3 @@
-
 using System;
 using System.Data;
 using System.IO;
@@ -12,7 +11,6 @@ namespace EduTrack
 {
     public class ReportExporter
     {
-        // Exports both dashboard charts as PNG images.
         public static void ExportBothChartsToImages(
             FormsPlot barPlotControl,
             FormsPlot piePlotControl)
@@ -25,84 +23,80 @@ namespace EduTrack
                     return;
                 }
 
-                using (FolderBrowserDialog folderDialog =
-                    new FolderBrowserDialog())
+                using (FolderBrowserDialog folderDialog = new FolderBrowserDialog())
                 {
-                    folderDialog.Description =
-                        "Select a folder to save the chart images.";
+                    folderDialog.Description = "Select a folder to save both charts as PNG images";
 
                     if (folderDialog.ShowDialog() != DialogResult.OK)
                         return;
 
                     string folder = folderDialog.SelectedPath;
 
-                    string barPath = Path.Combine(
-                        folder, "ProgramEnrollment.png");
+                    string barPath = Path.Combine(folder, "EduTrack_Program_Chart.png");
+                    string piePath = Path.Combine(folder, "EduTrack_YearLevel_Chart.png");
 
-                    string piePath = Path.Combine(
-                        folder, "YearLevelEnrollment.png");
-
-                    barPlotControl.Plot.SavePng(barPath, 1200, 800);
-                    piePlotControl.Plot.SavePng(piePath, 1200, 800);
+                    barPlotControl.Plot.SavePng(barPath, 1000, 650);
+                    piePlotControl.Plot.SavePng(piePath, 1000, 650);
 
                     ErrorHandler.ShowSuccess(
-                        "Both chart images were exported successfully.");
+                        "Both charts saved successfully!\n\n" +
+                        "1. " + barPath + "\n" +
+                        "2. " + piePath);
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandler.ShowDatabaseError(
-                    ex, "export chart images");
+                ErrorHandler.ShowDatabaseError(ex, "saving chart images");
             }
         }
 
-        // Generates a PDF containing enrollment summaries,
-        // dashboard charts, and the student directory.
         public static void ExportAnalyticsReport(
             DataTable studentData,
             int totalStudents,
             int bsitCount,
             int bscsCount,
             int otherCount,
-            FormsPlot? programChart,
-            FormsPlot? yearLevelChart)
+            FormsPlot? programChart = null,
+            FormsPlot? yearLevelChart = null)
         {
             string? programImagePath = null;
             string? yearImagePath = null;
 
             try
             {
-                if (studentData == null)
+                if (studentData == null || studentData.Rows.Count == 0)
                 {
-                    MessageBox.Show("Student data is not available.");
+                    MessageBox.Show(
+                        "No student records available to include in the report.",
+                        "Export Report",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     return;
                 }
 
                 using (SaveFileDialog saveDialog = new SaveFileDialog())
                 {
-                    saveDialog.Filter = "PDF Files (*.pdf)|*.pdf";
-                    saveDialog.Title = "Save Analytics Report";
+                    saveDialog.Filter = "PDF Report (*.pdf)|*.pdf";
+                    saveDialog.Title = "Export Student Analytics Summary Report (PDF)";
                     saveDialog.FileName = "EduTrack_Analytics_Report.pdf";
 
                     if (saveDialog.ShowDialog() != DialogResult.OK)
                         return;
 
-                    // Set QuestPDF license.
+                    // Set QuestPDF license and font settings.
                     QuestPDF.Settings.License = LicenseType.Community;
+                    QuestPDF.Settings.UseSystemFonts = true;
 
                     byte[]? programImage = null;
                     byte[]? yearImage = null;
 
-                    // Save charts temporarily so they can be embedded in the PDF.
                     if (programChart != null)
                     {
                         programImagePath = Path.Combine(
                             Path.GetTempPath(),
                             Guid.NewGuid() + ".png");
 
-                        programChart.Plot.SavePng(
-                            programImagePath, 1200, 800);
-
+                        programChart.Plot.SavePng(programImagePath, 900, 550);
                         programImage = File.ReadAllBytes(programImagePath);
                     }
 
@@ -112,9 +106,7 @@ namespace EduTrack
                             Path.GetTempPath(),
                             Guid.NewGuid() + ".png");
 
-                        yearLevelChart.Plot.SavePng(
-                            yearImagePath, 1200, 800);
-
+                        yearLevelChart.Plot.SavePng(yearImagePath, 900, 550);
                         yearImage = File.ReadAllBytes(yearImagePath);
                     }
 
@@ -122,147 +114,112 @@ namespace EduTrack
                     {
                         container.Page(page =>
                         {
-                            page.Size(PageSizes.A4.Landscape());
-                            page.Margin(30);
-                            page.DefaultTextStyle(
-                                style => style.FontSize(9));
+                            page.Size(PageSizes.A4);
+                            page.Margin(25);
+                            page.PageColor(Colors.White);
+                            page.DefaultTextStyle(style => style.FontSize(10).FontColor("#0F172A"));
 
                             page.Header()
+                                .PaddingBottom(12)
+                                .Background("#0F172A")
+                                .Padding(14)
                                 .Column(column =>
                                 {
                                     column.Item()
-                                        .Text("EduTrack")
-                                        .FontSize(22)
+                                        .Text("EDUTRACK - STUDENT ANALYTICS & DIRECTORY REPORT")
+                                        .FontSize(15)
                                         .Bold()
-                                        .FontColor("#17365D");
+                                        .FontColor(Colors.White);
 
                                     column.Item()
-                                        .Text("Analytics & Student Directory Summary Report")
-                                        .FontSize(14)
-                                        .SemiBold();
-
-                                    column.Item()
-                                        .Text("Generated: " +
-                                            DateTime.Now.ToString("MMMM dd, yyyy"))
+                                        .PaddingTop(3)
+                                        .Text("Generated on: " + DateTime.Now.ToString("MMMM dd, yyyy hh:mm tt"))
                                         .FontSize(9)
-                                        .FontColor("#666666");
+                                        .FontColor("#94A3B8");
                                 });
 
                             page.Content()
-                                .PaddingVertical(15)
                                 .Column(column =>
                                 {
-                                    // Enrollment summary cards.
-                                    column.Item().Text("Enrollment Overview")
-                                        .FontSize(15).Bold();
+                                    column.Spacing(14);
 
-                                    column.Item().PaddingTop(10).Row(row =>
+                                    column.Item().Row(row =>
                                     {
-                                        AddSummaryCard(
-                                            row, "Total Students",
-                                            totalStudents.ToString(), "#17365D");
-
-                                        AddSummaryCard(
-                                            row, "BSIT Students",
-                                            bsitCount.ToString(), "#198754");
-
-                                        AddSummaryCard(
-                                            row, "BSCS Students",
-                                            bscsCount.ToString(), "#0D6EFD");
-
-                                        AddSummaryCard(
-                                            row, "Other Programs",
-                                            otherCount.ToString(), "#D97706");
+                                        row.Spacing(10);
+                                        AddSummaryCard(row, "TOTAL STUDENTS", totalStudents.ToString(), "#4F46E5");
+                                        AddSummaryCard(row, "BSIT ENROLLED", bsitCount.ToString(), "#10B981");
+                                        AddSummaryCard(row, "BSCS ENROLLED", bscsCount.ToString(), "#F59E0B");
+                                        AddSummaryCard(row, "OTHER PROGRAMS", otherCount.ToString(), "#8B5CF6");
                                     });
 
-                                    // Chart section.
-                                    column.Item().PaddingTop(20)
-                                        .Text("Enrollment Charts")
-                                        .FontSize(15).Bold();
-
-                                    column.Item().PaddingTop(10).Row(row =>
+                                    if (programImage != null || yearImage != null)
                                     {
-                                        if (programImage != null)
+                                        column.Item().Row(row =>
                                         {
-                                            row.RelativeItem().Column(chart =>
+                                            row.Spacing(10);
+
+                                            if (programImage != null)
                                             {
-                                                chart.Item().Text(
-                                                    "Enrollment by Program")
-                                                    .Bold();
+                                                row.RelativeItem()
+                                                    .Border(1)
+                                                    .BorderColor("#E2E8F0")
+                                                    .Padding(6)
+                                                    .Image(programImage)
+                                                    .FitWidth();
+                                            }
 
-                                                chart.Item().Image(programImage)
-                                                    .FitArea();
-                                            });
-                                        }
-
-                                        if (yearImage != null)
-                                        {
-                                            row.RelativeItem().Column(chart =>
+                                            if (yearImage != null)
                                             {
-                                                chart.Item().Text(
-                                                    "Enrollment by Year Level")
-                                                    .Bold();
+                                                row.RelativeItem()
+                                                    .Border(1)
+                                                    .BorderColor("#E2E8F0")
+                                                    .Padding(6)
+                                                    .Image(yearImage)
+                                                    .FitWidth();
+                                            }
+                                        });
+                                    }
 
-                                                chart.Item().Image(yearImage)
-                                                    .FitArea();
-                                            });
-                                        }
-                                    });
-
-                                    // Student directory section.
-                                    column.Item().PageBreak();
-
-                                    column.Item().Text("Student Directory")
-                                        .FontSize(15).Bold();
-
-                                    column.Item().PaddingTop(10).Table(table =>
+                                    column.Item().Table(table =>
                                     {
-                                        int columnCount = studentData.Columns.Count;
-
                                         table.ColumnsDefinition(columns =>
                                         {
-                                            for (int i = 0; i < columnCount; i++)
-                                            {
-                                                columns.RelativeColumn();
-                                            }
+                                            columns.RelativeColumn(1.4f);
+                                            columns.RelativeColumn(2.4f);
+                                            columns.RelativeColumn(1.0f);
+                                            columns.RelativeColumn(1.2f);
+                                            columns.RelativeColumn(1.2f);
+                                            columns.RelativeColumn(1.8f);
                                         });
 
-                                        // Table headings.
                                         table.Header(header =>
                                         {
-                                            foreach (DataColumn col in studentData.Columns)
-                                            {
-                                                header.Cell()
-                                                    .Element(HeaderCellStyle)
-                                                    .Text(col.ColumnName);
-                                            }
+                                            header.Cell().Element(HeaderCellStyle).Text("STUDENT ID");
+                                            header.Cell().Element(HeaderCellStyle).Text("FULL NAME");
+                                            header.Cell().Element(HeaderCellStyle).Text("GENDER");
+                                            header.Cell().Element(HeaderCellStyle).Text("YEAR LEVEL");
+                                            header.Cell().Element(HeaderCellStyle).Text("PROGRAM");
+                                            header.Cell().Element(HeaderCellStyle).Text("CONTACT NUMBER");
                                         });
 
-                                        // Student records.
-                                        for (int rowIndex = 0;
-                                             rowIndex < studentData.Rows.Count;
-                                             rowIndex++)
+                                        for (int rowIndex = 0; rowIndex < studentData.Rows.Count; rowIndex++)
                                         {
-                                            DataRow dataRow =
-                                                studentData.Rows[rowIndex];
+                                            DataRow dataRow = studentData.Rows[rowIndex];
+                                            string background = (rowIndex % 2 == 1) ? "#F8FAFC" : "#FFFFFF";
 
-                                            string background =
-                                                rowIndex % 2 == 0
-                                                ? "#F2F5F9"
-                                                : "#FFFFFF";
+                                            string studentId = dataRow["student_id"]?.ToString() ?? "";
+                                            string name = dataRow["name"]?.ToString() ?? "";
+                                            string gender = dataRow["gender"]?.ToString() ?? "";
+                                            string yearLevel = dataRow["year_level"]?.ToString() ?? "";
+                                            string program = dataRow["program"]?.ToString() ?? "";
+                                            string contact = dataRow["contact_number"]?.ToString() ?? "";
 
-                                            foreach (DataColumn col in studentData.Columns)
-                                            {
-                                                string value =
-                                                    dataRow[col] == DBNull.Value
-                                                    ? ""
-                                                    : dataRow[col].ToString() ?? "";
-
-                                                table.Cell()
-                                                    .Element(cell =>
-                                                        BodyCellStyle(cell, background))
-                                                    .Text(value);
-                                            }
+                                            table.Cell().Element(cell => BodyCellStyle(cell, background)).Text(studentId);
+                                            table.Cell().Element(cell => BodyCellStyle(cell, background)).Text(name);
+                                            table.Cell().Element(cell => BodyCellStyle(cell, background)).Text(gender);
+                                            table.Cell().Element(cell => BodyCellStyle(cell, background)).Text(yearLevel);
+                                            table.Cell().Element(cell => BodyCellStyle(cell, background)).Text(program);
+                                            table.Cell().Element(cell => BodyCellStyle(cell, background)).Text(contact);
                                         }
                                     });
                                 });
@@ -271,7 +228,8 @@ namespace EduTrack
                                 .AlignCenter()
                                 .Text(text =>
                                 {
-                                    text.Span("EduTrack | Page ");
+                                    text.DefaultTextStyle(style => style.FontSize(8).FontColor("#64748B"));
+                                    text.Span("EduTrack Student Analytics Report | Page ");
                                     text.CurrentPageNumber();
                                     text.Span(" of ");
                                     text.TotalPages();
@@ -279,33 +237,27 @@ namespace EduTrack
                         });
                     }).GeneratePdf(saveDialog.FileName);
 
-                    ErrorHandler.ShowSuccess(
-                        "Analytics PDF report exported successfully.");
+                    ErrorHandler.ShowSuccess("PDF summary report exported successfully!");
                 }
             }
             catch (Exception ex)
             {
-                ErrorHandler.ShowDatabaseError(
-                    ex, "export analytics report");
+                ErrorHandler.ShowDatabaseError(ex, "exporting PDF summary report");
             }
             finally
             {
-                // Remove temporary chart images.
-                if (programImagePath != null &&
-                    File.Exists(programImagePath))
+                if (programImagePath != null && File.Exists(programImagePath))
                 {
                     File.Delete(programImagePath);
                 }
 
-                if (yearImagePath != null &&
-                    File.Exists(yearImagePath))
+                if (yearImagePath != null && File.Exists(yearImagePath))
                 {
                     File.Delete(yearImagePath);
                 }
             }
         }
 
-        // Creates a summary card in the PDF.
         private static void AddSummaryCard(
             RowDescriptor row,
             string title,
@@ -313,47 +265,45 @@ namespace EduTrack
             string valueColorHex)
         {
             row.RelativeItem()
-                .Padding(5)
                 .Border(1)
-                .BorderColor("#D9E2F3")
+                .BorderColor("#E2E8F0")
                 .Background("#F8FAFC")
-                .Padding(12)
+                .Padding(10)
                 .Column(column =>
                 {
                     column.Item()
                         .Text(title)
-                        .FontSize(9)
-                        .FontColor("#555555");
+                        .FontSize(8)
+                        .Bold()
+                        .FontColor("#64748B");
 
                     column.Item()
-                        .PaddingTop(5)
+                        .PaddingTop(4)
                         .Text(value)
-                        .FontSize(20)
+                        .FontSize(18)
                         .Bold()
                         .FontColor(valueColorHex);
                 });
         }
 
-        // Styles the PDF table header.
         private static IContainer HeaderCellStyle(IContainer container)
         {
             return container
-                .Background("#17365D")
-                .Padding(6)
-                .DefaultTextStyle(style =>
-                    style.FontColor("#FFFFFF").Bold());
+                .Background("#0F172A")
+                .PaddingVertical(6)
+                .PaddingHorizontal(6)
+                .DefaultTextStyle(style => style.FontSize(8).Bold().FontColor(Colors.White));
         }
 
-        // Styles the PDF table body cells.
-        private static IContainer BodyCellStyle(
-            IContainer container,
-            string backgroundColor)
+        private static IContainer BodyCellStyle(IContainer container, string backgroundColor)
         {
             return container
                 .Background(backgroundColor)
                 .BorderBottom(1)
-                .BorderColor("#D9E2F3")
-                .Padding(5);
+                .BorderColor("#E2E8F0")
+                .PaddingVertical(5)
+                .PaddingHorizontal(6)
+                .DefaultTextStyle(style => style.FontSize(8.5f).FontColor("#0F172A"));
         }
     }
 }
