@@ -1,4 +1,10 @@
 <Solution>
+  <Project Path="EduTrack.Mobile/EduTrack.Mobile.csproj">
+    <Deploy Solution="Release|*" />
+  </Project>
+  <Project Path="EduTrack.Setup/EduTrack.Setup.vdproj" Type="Installer">
+    <BuildType Project="Release" />
+    <Build Solution="Debug|*" />
+  </Project>
   <Project Path="EduTrack/EduTrack.csproj" />
-  <Project Path="EduTrack.Mobile/EduTrack.Mobile.csproj" />
 </Solution>
