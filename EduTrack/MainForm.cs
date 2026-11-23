@@ -129,9 +129,11 @@ namespace EduTrack
             ApplyRoundedCorners(btnDelete, 8, Color.Empty);
             ApplyRoundedCorners(btnClear, 8, inputBorder);
             ApplyRoundedCorners(pnlFilterBar, 10, thinBorder);
+            ApplyRoundedCorners(pnlDashboardToolbar, 10, thinBorder);
             ApplyRoundedCorners(btnToggleView, 6, Color.Empty);
-            ApplyRoundedCorners(btnRefreshDashboard, 6, inputBorder);
+            ApplyRoundedCorners(btnRefreshDashboard, 6, Color.Empty);
             ApplyRoundedCorners(pnlGridContainer, 10, thinBorder);
+            ApplyRoundedCorners(pnlAnalyticsContainer, 10, thinBorder);
             ApplyRoundedCorners(btnExportChart, 6, Color.Empty);
             ApplyRoundedCorners(btnExportSummaryReport, 6, Color.Empty);
             ApplyRoundedCorners(btnExportCsv, 6, Color.Empty);
@@ -564,6 +566,91 @@ namespace EduTrack
         private void cmbFilterProgram_SelectedIndexChanged(object sender, EventArgs e)
         {
             ApplyFilters();
+        }
+
+        public void RefreshDashboardAnalytics()
+        {
+            bool isConnected = StudentDatabase.TestConnection();
+            if (isConnected)
+            {
+                lblDbStatus.Text = "🟢 DB Connected";
+                lblDbStatus.ForeColor = Color.FromArgb(16, 185, 129);
+            }
+            else
+            {
+                lblDbStatus.Text = "🔴 DB Offline";
+                lblDbStatus.ForeColor = Color.FromArgb(244, 63, 94);
+            }
+
+            LoadStudentsToGrid();
+            UpdateSummaryCards();
+
+            analytics.RenderProgramBarChart(plotProgramBar);
+            analytics.RenderYearLevelPieChart(plotYearPie);
+        }
+
+        private void btnToggleView_Click(object sender, EventArgs e)
+        {
+            isAnalyticsView = !isAnalyticsView;
+
+            pnlGridContainer.Visible = !isAnalyticsView;
+            pnlFilterBar.Visible = !isAnalyticsView;
+
+            pnlAnalyticsContainer.Visible = isAnalyticsView;
+            pnlDashboardToolbar.Visible = isAnalyticsView;
+
+            if (isAnalyticsView)
+            {
+                btnToggleView.Text = "📋 Student Directory";
+                btnToggleView.BackColor = Color.FromArgb(15, 23, 42);
+                pnlAnalyticsContainer.BringToFront();
+                pnlDashboardToolbar.BringToFront();
+
+                RefreshDashboardAnalytics();
+            }
+            else
+            {
+                btnToggleView.Text = "📊 Analytics Dashboard";
+                btnToggleView.BackColor = Color.FromArgb(79, 70, 229);
+                pnlGridContainer.BringToFront();
+                pnlFilterBar.BringToFront();
+            }
+        }
+
+        private void btnRefreshDashboard_Click(object sender, EventArgs e)
+        {
+            RefreshDashboardAnalytics();
+            ErrorHandler.ShowSuccess("Dashboard refreshed successfully.");
+        }
+
+        private void btnExportChart_Click(object sender, EventArgs e)
+        {
+            ReportExporter.ExportBothChartsToImages(
+                plotProgramBar,
+                plotYearPie);
+        }
+
+        private void btnExportSummaryReport_Click(object sender, EventArgs e)
+        {
+            DataTable studentData = crud.GetAllStudents();
+
+            int totalStudents = crud.GetTotalStudentCount();
+            int bsitCount = crud.GetStudentCountByProgram("BSIT");
+            int bscsCount = crud.GetStudentCountByProgram("BSCS");
+
+            int otherCount = totalStudents - bsitCount - bscsCount;
+
+            if (otherCount < 0)
+                otherCount = 0;
+
+            ReportExporter.ExportAnalyticsReport(
+                studentData,
+                totalStudents,
+                bsitCount,
+                bscsCount,
+                otherCount,
+                plotProgramBar,
+                plotYearPie);
         }
     }
 }
