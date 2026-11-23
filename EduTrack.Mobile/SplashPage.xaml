@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="EduTrack.Mobile.SplashPage"
+             NavigationPage.HasNavigationBar="False">
+
+    <!-- Blue Gradient Background -->
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#1E3A8A" Offset="0.0" />
+            <GradientStop Color="#2563EB" Offset="0.5" />
+            <GradientStop Color="#0F172A" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid Padding="32">
+        <VerticalStackLayout x:Name="stkSplashContent"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"
+                             Spacing="16"
+                             Opacity="0">
+
+            <!-- App Logo Container -->
+			<Border WidthRequest="110"
+					HeightRequest="110"
+					HorizontalOptions="Center"
+					BackgroundColor="Transparent"
+					Stroke="Transparent"
+					StrokeThickness="0">
+                <Grid>
+					<Image x:Name="imgSplashLogo"
+						   Source="edutrack_logo.png"
+						   WidthRequest="120"
+						   HeightRequest="120"
+						   Aspect="AspectFit"
+						   HorizontalOptions="Center"
+						   VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- App Name -->
+            <Label x:Name="lblSplashTitle"
+                   Text="EDUTRACK"
+                   TextColor="White"
+                   FontFamily="Poppins"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   CharacterSpacing="2"
+                   HorizontalTextAlignment="Center" />
+
+            <!-- App Subtitle -->
+            <Label x:Name="lblSplashSubtitle"
+                   Text="Student Information &amp; Mobile Directory"
+                   TextColor="#BFDBFE"
+                   FontFamily="Inter"
+                   FontSize="14"
+                   HorizontalTextAlignment="Center" />
+
+            <!-- Subtle Loading Indicator -->
+            <ActivityIndicator IsRunning="True"
+                               Color="#93C5FD"
+                               WidthRequest="32"
+                               HeightRequest="32"
+                               Margin="0,18,0,0"
+                               HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
